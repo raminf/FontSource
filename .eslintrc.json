@@ -1,0 +1,29 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "webextensions": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": ["error", {
+      "argsIgnorePattern": "^_|^response$",
+      "varsIgnorePattern": "^_|^response$"
+    }],
+    "no-console": "off",
+    "semi": ["error", "always"],
+    "quotes": ["warn", "single"],
+    "no-var": "error",
+    "prefer-const": "warn",
+    "no-undef": "error"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "build/"
+  ]
+}

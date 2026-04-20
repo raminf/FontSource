@@ -1,0 +1,28 @@
+{
+  "name": "fontsource",
+  "version": "1.0.0",
+  "description": "Browser extension to detect fonts, their sources, and licenses",
+  "main": "src/background.js",
+  "scripts": {
+    "build": "make build",
+    "watch": "make watch",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "format": "prettier --write 'src/**/*.{js,css,html}'",
+    "test": "echo \"No tests yet\"",
+    "package:chrome": "make package-chrome",
+    "package:firefox": "make package-firefox",
+    "package:safari": "make package-safari"
+  },
+  "keywords": [
+    "font",
+    "browser-extension",
+    "font-detection"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  }
+}
