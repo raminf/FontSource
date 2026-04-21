@@ -177,6 +177,11 @@ body {
   margin-bottom: 16px;
 }
 
+/* In page mode the active-page bar already explains scanning; hide duplicate hint above URL field. */
+.content[data-mode='page'] .url-section-hint {
+  display: none;
+}
+
 .content[data-mode='blank'] .url-section {
   margin-bottom: 20px;
 }

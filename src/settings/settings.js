@@ -20,7 +20,7 @@ const groupBySourceCheckbox = document.getElementById('groupBySource');
 const findSearchPreset = document.getElementById('findSearchPreset');
 const findSearchTemplate = document.getElementById('findSearchTemplate');
 
-let settings = {
+const settings = {
   scanRoot: false,
   showPreview: true,
   groupBySource: false,
@@ -42,6 +42,17 @@ function init() {
   loadSettings();
   setupEventListeners();
 }
+
+(function setSettingsVersionFromManifest() {
+  try {
+    const el = document.getElementById('settingsAppVersion');
+    if (el) {
+      el.textContent = `v${chrome.runtime.getManifest().version}`;
+    }
+  } catch (_e) {
+    /* ignore */
+  }
+})();
 
 function loadSettings() {
   chrome.runtime.sendMessage({ action: 'getState' }, (response) => {
@@ -175,4 +186,8 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

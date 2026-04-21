@@ -23,7 +23,7 @@ function takeValueUntilNextDeclaration(str, start) {
       continue;
     }
 
-    if (c === '"' || c === "'") {
+    if (c === '"' || c === '\'') {
       quote = c;
       continue;
     }
@@ -128,3 +128,6 @@ function parseFontFacesFromCss(cssText, baseUrl) {
 
   return results;
 }
+
+/** Exposed for background.js after importScripts (classic script global). */
+globalThis.parseFontFacesFromCss = parseFontFacesFromCss;

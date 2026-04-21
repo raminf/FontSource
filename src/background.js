@@ -288,10 +288,10 @@ async function fetchRemoteStylesheetFontFaces(hrefs) {
 }
 
 /**
- * Inject content scripts manually when automatic registration did not run (common on
- * heavy news sites, prerendered tabs, or after bfcache restore).
- * Re-running lib/font-detection.js in the same isolated world throws (top-level const),
- * so after a failed full inject we inject only content.js (no-op IIFE if already loaded).
+ * Inject content scripts manually when tabs.sendMessage finds no listener (SPA / bfcache / timing).
+ * Never load lib/font-detection.js again if the manifest already did — duplicate top-level const
+ * throws and leaves the page without a working listener. Prefer re-running content.js only
+ * (re-attaches onMessage); fall back to font-detection + content only when needed.
  * @param {number} tabId
  * @returns {Promise<boolean>}
  */
@@ -300,24 +300,29 @@ async function ensureContentScriptsInjected(tabId) {
     return false;
   }
   const target = { tabId, allFrames: false };
+  const contentOnly = ['content.js'];
   const both = ['lib/font-detection.js', 'content.js'];
-  try {
-    await chrome.scripting.executeScript({ target, files: both });
-    return true;
-  } catch (e1) {
+  const attempts = [
+    { files: contentOnly },
+    { files: contentOnly, injectImmediately: true },
+    { files: both },
+    { files: both, injectImmediately: true }
+  ];
+  let lastErr;
+  for (const a of attempts) {
     try {
-      await chrome.scripting.executeScript({ target, files: ['content.js'] });
+      await chrome.scripting.executeScript({
+        target,
+        files: a.files,
+        ...(a.injectImmediately ? { injectImmediately: true } : {})
+      });
       return true;
-    } catch (e2) {
-      try {
-        await chrome.scripting.executeScript({ target, files: both, injectImmediately: true });
-        return true;
-      } catch (e3) {
-        console.warn('FontSource: programmatic content-script inject failed', e3);
-        return false;
-      }
+    } catch (e) {
+      lastErr = e;
     }
   }
+  console.warn('FontSource: programmatic content-script inject failed', lastErr);
+  return false;
 }
 
 async function trySendMessageToTab(tabId, action, data) {
@@ -476,6 +481,13 @@ async function scanCurrentPage(options = {}, tabIdOpt) {
   };
 }
 
+/**
+ * Used by tests/panel-baseline-runner.mjs (Playwright) only; not called from web pages.
+ * @param {number} tabId
+ * @param {object} [options]
+ */
+globalThis.__fontSourceRunScanForTesting = (tabId, options) => scanCurrentPage(options || {}, tabId);
+
 // Initialize on extension load
 loadState().then(() => {
   console.log('FontSource: Background script initialized');
@@ -564,18 +576,3 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     console.log('FontSource: Tab updated:', tab.url);
   }
 });
-
-// Export for testing
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    loadState,
-    saveState,
-    updateScanOptions,
-    getCurrentTabUrl,
-    getCurrentTabDescriptor,
-    isScannablePage,
-    openUrlForScanning,
-    sendMessageToContent,
-    scanCurrentPage
-  };
-}

@@ -24,6 +24,21 @@
   "ignorePatterns": [
     "node_modules/",
     "dist/",
-    "build/"
+    "build/",
+    "coverage/",
+    "firefox-artifacts/"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "tests/**/*.mjs",
+        "scripts/**/*.mjs",
+        "vitest.config.mjs"
+      ],
+      "env": {
+        "node": true,
+        "browser": false
+      }
+    }
   ]
 }

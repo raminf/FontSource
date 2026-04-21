@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-VERSION := 1.0.0
+VERSION := 1.0.2
 BUILD_DIR := dist
 SRC_DIR := src
 
@@ -12,7 +12,8 @@ GREEN := \033[32m
 YELLOW := \033[33m
 RESET := \033[0m
 
-.PHONY: all install build clean clean-dist distclean test lint format icons \
+.PHONY: all install build clean clean-dist distclean test lint format icons bump \
+	test-panel-baseline-record test-panel-baseline-check \
 	package package-chrome package-firefox package-safari bundle \
 	load load-chrome load-firefox load-safari \
 	uninstall uninstall-chrome uninstall-firefox uninstall-safari \
@@ -46,9 +47,10 @@ build: clean-dist ## Copy src to dist/ (Chrome MV3 manifest in dist/)
 	@printf "$(GREEN)Build complete.$(RESET)\n"
 	@printf "$(YELLOW)Load unpacked in Chrome/Safari from: $(BUILD_DIR)/$(RESET)\n"
 
-test: ## Run tests (placeholder)
+test: ## Run automated tests (Vitest)
 	@printf "$(BLUE)Running tests...$(RESET)\n"
-	@printf "$(YELLOW)No tests configured yet.$(RESET)\n"
+	npm test
+	@printf "$(GREEN)Tests finished.$(RESET)\n"
 
 lint: ## Lint JavaScript
 	@printf "$(BLUE)Linting...$(RESET)\n"
@@ -59,6 +61,21 @@ format: ## Format with Prettier
 	@printf "$(BLUE)Formatting...$(RESET)\n"
 	npm run format
 	@printf "$(GREEN)Format complete.$(RESET)\n"
+
+bump: ## Bump release version: Makefile VERSION, manifests, package.json/lock, Xcode MARKETING_VERSION + build (BUMP=patch|minor|major)
+	@printf "$(BLUE)Bumping version ($(YELLOW)BUMP=$(or $(BUMP),patch)$(BLUE))...$(RESET)\n"
+	@bash scripts/bump-version.sh "$(or $(BUMP),patch)"
+	@printf "$(GREEN)Bump complete.$(RESET)\n"
+
+test-panel-baseline-record: ## Record panel listing baseline (needs make build + Playwright chromium). Optional: PANEL_ARGS='--slug=fixture --url=https://…'
+	@printf "$(BLUE)Recording panel baseline ($(YELLOW)dist/$(BLUE) extension, Playwright)...$(RESET)\n"
+	node tests/panel-baseline-runner.mjs record $(PANEL_ARGS)
+	@printf "$(GREEN)Baseline written under tests/baselines/$(RESET)\n"
+
+test-panel-baseline-check: ## Diff current scan vs tests/baselines/<slug>.txt (same args as record)
+	@printf "$(BLUE)Checking panel baseline...$(RESET)\n"
+	node tests/panel-baseline-runner.mjs check $(PANEL_ARGS)
+	@printf "$(GREEN)Panel baseline matches.$(RESET)\n"
 
 ICON_SRC := media/icon1024.svg
 ICON_LIGHT_SRC := media/icon1024-light.svg
@@ -182,3 +199,5 @@ help: ## List targets and short descriptions
 	@grep -E '^[a-zA-Z0-9_.-]+:.*##' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*## "}; {printf "  $(GREEN)%-22s$(RESET) %s\n", $$1, $$2}'
 	@printf "\n$(YELLOW)Typical dev:$(RESET) $(GREEN)make install$(RESET), then $(GREEN)make build$(RESET), then $(GREEN)make load-chrome$(RESET) / $(GREEN)make load-firefox$(RESET) / $(GREEN)make load-safari$(RESET).\n"
 	@printf "$(YELLOW)Full clean:$(RESET) $(GREEN)make distclean$(RESET) removes $(BUILD_DIR) and node_modules.\n"
+	@printf "$(YELLOW)Release version:$(RESET) $(GREEN)make bump$(RESET) (patch), $(GREEN)make bump BUMP=minor$(RESET), or $(GREEN)make bump BUMP=major$(RESET).\n"
+	@printf "$(YELLOW)Panel baseline:$(RESET) $(GREEN)make test-panel-baseline-record$(RESET) then commit $(YELLOW)tests/baselines/*.txt$(RESET); $(GREEN)make test-panel-baseline-check$(RESET) to diff. Needs $(YELLOW)npx playwright install chromium$(RESET).\n"

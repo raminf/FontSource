@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FontSource panel baseline fixture</title>
+  <style>
+    /* Generic stacks so output is mostly stable across OS installs (still record baseline on your target OS/CI image). */
+    .headline {
+      font-family: Georgia, "Times New Roman", Times, serif;
+      font-size: 1.5rem;
+    }
+    .body {
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 1rem;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 class="headline">Baseline fixture heading</h1>
+    <p class="body">Paragraph using the UI sans stack.</p>
+    <pre class="mono">Monospace sample block.</pre>
+  </main>
+</body>
+</html>

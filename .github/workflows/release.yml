@@ -1,0 +1,114 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  chrome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Resolve package version
+        id: ver
+        run: |
+          v=$(grep '^VERSION :=' Makefile | sed 's/^VERSION := *//')
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "CHROME_ZIP_PATH=${GITHUB_WORKSPACE}/fontsource-chrome-${v}.zip" >> "$GITHUB_ENV"
+
+      - name: Package Chrome zip
+        run: make package-chrome
+
+      - name: Publish to Chrome Web Store
+        if: >-
+          ${{ secrets.CHROME_EXTENSION_ID != '' &&
+          secrets.CHROME_CLIENT_ID != '' &&
+          secrets.CHROME_CLIENT_SECRET != '' &&
+          secrets.CHROME_REFRESH_TOKEN != '' }}
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: node scripts/publish-chrome.mjs
+
+      - name: Chrome publish skipped
+        if: >-
+          ${{ secrets.CHROME_EXTENSION_ID == '' ||
+          secrets.CHROME_CLIENT_ID == '' ||
+          secrets.CHROME_CLIENT_SECRET == '' ||
+          secrets.CHROME_REFRESH_TOKEN == '' }}
+        run: echo "Chrome Web Store secrets not fully configured; zip was built only."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fontsource-chrome
+          path: fontsource-chrome-*.zip
+
+  firefox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Package Firefox zip (and Firefox manifest into dist/)
+        run: make package-firefox
+
+      - name: Submit to AMO (listed)
+        if: ${{ secrets.WEB_EXT_API_KEY != '' && secrets.WEB_EXT_API_SECRET != '' }}
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: node scripts/publish-firefox.mjs
+
+      - name: Firefox submit skipped
+        if: ${{ secrets.WEB_EXT_API_KEY == '' || secrets.WEB_EXT_API_SECRET == '' }}
+        run: echo "WEB_EXT_API_KEY / WEB_EXT_API_SECRET not set; AMO submit skipped."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fontsource-firefox
+          path: fontsource-firefox-*.zip
+
+  safari:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Rebuild Safari Xcode wrapper
+        run: make package-safari
+
+      - name: Optional App Store Connect hook
+        env:
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: bash scripts/publish-safari.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: safari-xcode-project
+          path: safari/

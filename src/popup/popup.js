@@ -23,6 +23,17 @@ const scanProgressLabel = document.getElementById('scanProgressLabel');
 const scanProgressMeta = document.getElementById('scanProgressMeta');
 const pageScanBtn = document.getElementById('pageScanBtn');
 
+(function setPopupVersionFromManifest() {
+  try {
+    const el = document.getElementById('popupAppVersion');
+    if (el) {
+      el.textContent = `v${chrome.runtime.getManifest().version}`;
+    }
+  } catch (_e) {
+    /* ignore */
+  }
+})();
+
 /** @type {chrome.runtime.Port | null} */
 let fontScanProgressPort = null;
 
@@ -402,16 +413,16 @@ function safeCssFontSize(v) {
 function formatHintForFontUrl(abs) {
   const path = abs.split('?')[0].split('#')[0].toLowerCase();
   if (path.endsWith('.woff2')) {
-    return " format('woff2')";
+    return ' format(\'woff2\')';
   }
   if (path.endsWith('.woff')) {
-    return " format('woff')";
+    return ' format(\'woff\')';
   }
   if (path.endsWith('.ttf')) {
-    return " format('truetype')";
+    return ' format(\'truetype\')';
   }
   if (path.endsWith('.otf')) {
-    return " format('opentype')";
+    return ' format(\'opentype\')';
   }
   return '';
 }
@@ -545,7 +556,7 @@ function familiesForPreviewCss(name) {
       if (generic.test(p)) {
         return p;
       }
-      return `'${p.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+      return `'${p.replace(/\\/g, '\\\\').replace(/'/g, '\\\'')}'`;
     })
     .filter(Boolean)
     .join(', ');
@@ -808,4 +819,8 @@ function truncateUrl(url, maxLength) {
   return url.substring(0, maxLength - 3) + '...';
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  void init();
+}

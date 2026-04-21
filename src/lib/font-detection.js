@@ -797,21 +797,11 @@ function getPageUrlInfo() {
   };
 }
 
-// Export for use in other modules
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    detectFonts,
-    detectFontsWithProgress,
-    getFontFaceRules,
-    getComputedFontInfo,
-    extractFontFamilies,
-    getFontMetadata,
-    detectFontSource,
-    analyzeFontSource,
-    getExternalStylesheetHrefs,
-    mergeFontFaceRuleIntoMap,
-    FONT_SERVICES,
-    COMMON_FONTS,
-    getPageUrlInfo
-  };
-}
+// Same isolated-world globals content.js expects; keeps these bindings “used” for ESLint.
+Object.assign(globalThis, {
+  detectFonts,
+  detectFontsWithProgress,
+  getExternalStylesheetHrefs,
+  getComputedFontInfo,
+  getPageUrlInfo
+});

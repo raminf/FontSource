@@ -35,6 +35,9 @@ temp/
 # Coverage
 coverage/
 
+# web-ext sign output (local / CI)
+firefox-artifacts/
+
 # Environment variables
 .env
 .env.local
@@ -42,3 +45,19 @@ coverage/
 
 # Safari specific
 *.safariextension
+
+# Xcode / Apple — user state, local config, signing material (never commit secrets)
+**/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcuserstate
+.xcode.env.local
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.certSigningRequest
+AuthKey_*.p8
