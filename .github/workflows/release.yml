@@ -94,28 +94,136 @@ jobs:
           if-no-files-found: ignore
 
   safari:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-
-      - run: npm ci
-
-      - name: Package Safari web extension archive
-        run: make package-safari
-
-      - name: Safari publish placeholder
+      - name: Check Safari CI configuration
+        id: safari_cfg
         env:
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          APPLE_CERTIFICATES_P12_BASE64: ${{ secrets.APPLE_CERTIFICATES_P12_BASE64 }}
+          APPLE_CERTIFICATES_P12_PASSWORD: ${{ secrets.APPLE_CERTIFICATES_P12_PASSWORD }}
+          APPLE_PROVISION_PROFILE_APP_BASE64: ${{ secrets.APPLE_PROVISION_PROFILE_APP_BASE64 }}
+          APPLE_PROVISION_PROFILE_EXTENSION_BASE64: ${{ secrets.APPLE_PROVISION_PROFILE_EXTENSION_BASE64 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          build_missing=()
+          for v in APPLE_CERTIFICATES_P12_BASE64 APPLE_CERTIFICATES_P12_PASSWORD APPLE_PROVISION_PROFILE_APP_BASE64 APPLE_PROVISION_PROFILE_EXTENSION_BASE64 APPLE_TEAM_ID; do
+            if [[ -z "${!v:-}" ]]; then
+              build_missing+=("$v")
+            fi
+          done
+          if (( ${#build_missing[@]} == 0 )); then
+            echo "build_enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build_enabled=false" >> "$GITHUB_OUTPUT"
+            printf 'Missing Safari signing/build secrets: %s\n' "${build_missing[*]}"
+          fi
+
+          upload_missing=()
+          for v in APPLE_ID APPLE_APP_SPECIFIC_PASSWORD; do
+            if [[ -z "${!v:-}" ]]; then
+              upload_missing+=("$v")
+            fi
+          done
+          if (( ${#upload_missing[@]} == 0 )); then
+            echo "upload_enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "upload_enabled=false" >> "$GITHUB_OUTPUT"
+            printf 'Missing Safari upload secrets: %s\n' "${upload_missing[*]}"
+          fi
+
+      - name: Import Apple code-signing certificates
+        if: ${{ steps.safari_cfg.outputs.build_enabled == 'true' }}
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATES_P12_BASE64 }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATES_P12_PASSWORD }}
+
+      - name: Install provisioning profiles
+        if: ${{ steps.safari_cfg.outputs.build_enabled == 'true' }}
+        env:
+          APPLE_PROVISION_PROFILE_APP_BASE64: ${{ secrets.APPLE_PROVISION_PROFILE_APP_BASE64 }}
+          APPLE_PROVISION_PROFILE_EXTENSION_BASE64: ${{ secrets.APPLE_PROVISION_PROFILE_EXTENSION_BASE64 }}
+        run: |
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo -n "$APPLE_PROVISION_PROFILE_APP_BASE64" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/fontsource-app.provisionprofile"
+          echo -n "$APPLE_PROVISION_PROFILE_EXTENSION_BASE64" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/fontsource-extension.provisionprofile"
+
+      - name: Archive Safari host app
+        if: ${{ steps.safari_cfg.outputs.build_enabled == 'true' }}
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          mkdir -p artifacts
+          xcodebuild \
+            -project safari/FontSource.xcodeproj \
+            -scheme FontSource \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$RUNNER_TEMP/FontSource.xcarchive" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            archive
+
+      - name: Export Safari pkg
+        if: ${{ steps.safari_cfg.outputs.build_enabled == 'true' }}
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>destination</key>
+            <string>export</string>
+            <key>generateAppStoreInformation</key>
+            <true/>
+            <key>method</key>
+            <string>app-store</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+          </dict>
+          </plist>
+          EOF
+          rm -rf artifacts/safari-export
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$RUNNER_TEMP/FontSource.xcarchive" \
+            -exportPath artifacts/safari-export \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+          PKG_PATH="$(find artifacts/safari-export -maxdepth 2 -name '*.pkg' -print -quit)"
+          if [[ -z "$PKG_PATH" ]]; then
+            echo "No .pkg exported from archive" >&2
+            exit 1
+          fi
+          echo "SAFARI_PKG_PATH=${GITHUB_WORKSPACE}/${PKG_PATH}" >> "$GITHUB_ENV"
+
+      - name: Upload Safari build to App Store Connect
+        if: ${{ steps.safari_cfg.outputs.build_enabled == 'true' && steps.safari_cfg.outputs.upload_enabled == 'true' }}
+        env:
+          SAFARI_PKG_PATH: ${{ env.SAFARI_PKG_PATH }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_PROVIDER_PUBLIC_ID: ${{ secrets.APPLE_PROVIDER_PUBLIC_ID }}
         run: bash scripts/publish-safari.sh
 
+      - name: Safari upload skipped
+        if: ${{ steps.safari_cfg.outputs.build_enabled == 'true' && steps.safari_cfg.outputs.upload_enabled != 'true' }}
+        run: echo "Safari .pkg built, but upload credentials are not fully configured."
+
+      - name: Safari build skipped
+        if: ${{ steps.safari_cfg.outputs.build_enabled != 'true' }}
+        run: echo "Safari signing/build secrets not fully configured; skipping macOS archive/export."
+
       - uses: actions/upload-artifact@v4
+        if: ${{ steps.safari_cfg.outputs.build_enabled == 'true' }}
         with:
-          name: safari-webext-archive
-          path: artifacts/fontsource-safari-webext-*.zip
+          name: safari-macos-build
+          path: |
+            artifacts/safari-export/*.pkg
+            artifacts/safari-export/*.plist
