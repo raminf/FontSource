@@ -63,6 +63,20 @@ function tabsQuery(query, callback) {
 }
 
 const DEFAULT_FIND_SEARCH_TEMPLATE = 'https://www.google.com/search?q={query}';
+const FIREFOX_RESTRICTED_HOSTS = new Set([
+  'accounts-static.cdn.mozilla.net',
+  'accounts.firefox.com',
+  'addons.cdn.mozilla.net',
+  'addons.mozilla.org',
+  'api.accounts.firefox.com',
+  'content.cdn.mozilla.net',
+  'discovery.addons.mozilla.org',
+  'install.mozilla.org',
+  'oauth.accounts.firefox.com',
+  'profile.accounts.firefox.com',
+  'support.mozilla.org',
+  'sync.services.mozilla.com'
+]);
 
 // Extension state
 let state = {
@@ -247,6 +261,22 @@ function isScannablePage(url) {
   const u = url.toLowerCase();
   if (u.startsWith('http://') || u.startsWith('https://')) return true;
   return false;
+}
+
+function getRestrictedPageReason(url) {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+  try {
+    const parsed = new URL(url);
+    const host = (parsed.hostname || '').toLowerCase();
+    if (FIREFOX_RESTRICTED_HOSTS.has(host)) {
+      return `Firefox blocks extensions from injecting scripts on ${host}. Open a different site to scan fonts there.`;
+    }
+  } catch {
+    return '';
+  }
+  return '';
 }
 
 /**
@@ -621,6 +651,11 @@ async function scanCurrentPage(options = {}, tabIdOpt) {
         'This tab has no normal webpage to scan (blank or built-in page). Enter a URL below to open a site, then open FontSource again after it loads.',
       blank: true
     };
+  }
+
+  const restrictedReason = getRestrictedPageReason(currentUrl);
+  if (restrictedReason) {
+    return { error: restrictedReason };
   }
 
   if (Object.keys(options).length > 0) {

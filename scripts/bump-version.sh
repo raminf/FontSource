@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bump extension + npm + Safari Xcode marketing/build versions.
+# Bump extension + npm versions.
 # Canonical version: Makefile (VERSION := x.y.z).
 # Usage: scripts/bump-version.sh [patch|minor|major]
 set -euo pipefail
@@ -42,16 +42,7 @@ esac
 
 NEW="${maj}.${min}.${pat}"
 
-PBXPROJ="safari/FontSource/FontSource.xcodeproj/project.pbxproj"
-NEXT_BUILD=2
-if [[ -f "$PBXPROJ" ]]; then
-  CUR_BUILD="$(grep -E 'CURRENT_PROJECT_VERSION = [0-9]+;' "$PBXPROJ" | head -1 | sed -E 's/.*CURRENT_PROJECT_VERSION = ([0-9]+);/\1/')"
-  if [[ -n "${CUR_BUILD:-}" ]]; then
-    NEXT_BUILD=$((CUR_BUILD + 1))
-  fi
-fi
-
-echo "Bumping $CURRENT -> $NEW ($BUMP); Xcode CURRENT_PROJECT_VERSION -> $NEXT_BUILD"
+echo "Bumping $CURRENT -> $NEW ($BUMP)"
 
 perl -i -pe "s/^VERSION := .*/VERSION := $NEW/" Makefile
 
@@ -78,12 +69,16 @@ if (lock.packages && lock.packages['']) {
 fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
 NODE
 
-if [[ -f "$PBXPROJ" ]]; then
-  perl -i -pe "s/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = ${NEW};/g" "$PBXPROJ"
-  perl -i -pe "s/CURRENT_PROJECT_VERSION = \\d+;/CURRENT_PROJECT_VERSION = ${NEXT_BUILD};/g" "$PBXPROJ"
-  echo "Updated $PBXPROJ (MARKETING_VERSION=${NEW}, CURRENT_PROJECT_VERSION=${NEXT_BUILD})"
-else
-  echo "No Xcode project at $PBXPROJ (skipped)."
+XCODE_PBXPROJ='safari/FontSource.xcodeproj/project.pbxproj'
+if [[ -f "$XCODE_PBXPROJ" ]]; then
+  CURRENT_BUILD="$(perl -ne 'if (/CURRENT_PROJECT_VERSION = ([0-9]+);/) { print $1; exit }' "$XCODE_PBXPROJ")"
+  if [[ -z "$CURRENT_BUILD" || ! "$CURRENT_BUILD" =~ ^[0-9]+$ ]]; then
+    echo "Could not determine CURRENT_PROJECT_VERSION from $XCODE_PBXPROJ" >&2
+    exit 1
+  fi
+  NEXT_BUILD=$((CURRENT_BUILD + 1))
+  perl -0pi -e "s/MARKETING_VERSION = [0-9]+\\.[0-9]+\\.[0-9]+;/MARKETING_VERSION = $NEW;/g; s/CURRENT_PROJECT_VERSION = [0-9]+;/CURRENT_PROJECT_VERSION = $NEXT_BUILD;/g" "$XCODE_PBXPROJ"
+  echo "Updated Safari Xcode project: MARKETING_VERSION=$NEW CURRENT_PROJECT_VERSION=$NEXT_BUILD"
 fi
 
 echo "Done. Review with git diff, then commit and tag if releasing."

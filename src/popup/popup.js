@@ -22,26 +22,7 @@ const scanProgressFill = document.getElementById('scanProgressFill');
 const scanProgressLabel = document.getElementById('scanProgressLabel');
 const scanProgressMeta = document.getElementById('scanProgressMeta');
 const pageScanBtn = document.getElementById('pageScanBtn');
-const POPUP_LOG_TAG = '[FontSource popup]';
-
-function popupLog(message, extra) {
-  if (typeof window !== 'undefined' && typeof window.__fontSourcePopupDebug === 'function') {
-    try {
-      if (typeof extra === 'undefined') {
-        window.__fontSourcePopupDebug(message);
-      } else {
-        window.__fontSourcePopupDebug(message, extra);
-      }
-    } catch (_e) {
-      /* ignore debug bridge failures */
-    }
-  }
-  if (typeof extra === 'undefined') {
-    console.log(POPUP_LOG_TAG, message);
-    return;
-  }
-  console.log(POPUP_LOG_TAG, message, extra);
-}
+const SCAN_REQUEST_TIMEOUT_MS = 30000;
 
 /**
  * Firefox exposes `browser.*` with Promises; Chrome uses `chrome.*` with callbacks.
@@ -157,10 +138,8 @@ function applyScanProgressPayload(payload) {
 }
 
 function sendMessage(payload) {
-  popupLog('sendMessage', payload);
   const api = extensionApi();
   if (!api.runtime || typeof api.runtime.sendMessage !== 'function') {
-    popupLog('sendMessage skipped: runtime API unavailable');
     return Promise.resolve(null);
   }
   if (typeof browser !== 'undefined' && api.runtime === browser.runtime) {
@@ -180,6 +159,20 @@ function sendMessage(payload) {
       resolve(response);
     });
   });
+}
+
+function sendMessageWithTimeout(payload, timeoutMs) {
+  return Promise.race([
+    sendMessage(payload),
+    new Promise((resolve) => {
+      window.setTimeout(() => {
+        resolve({
+          error:
+            'Scan timed out. This page may block extension scripts, still be loading, or be too heavy to scan right now.'
+        });
+      }, timeoutMs);
+    })
+  ]);
 }
 
 function isScannableWebUrl(url) {
@@ -262,7 +255,6 @@ async function resolveTabContextFromPopupWindow() {
  */
 async function getTabScanContextMerged() {
   const raw = (await sendMessage({ action: 'getTabScanContext' })) || {};
-  popupLog('getTabScanContextMerged raw', raw);
   const url = typeof raw.url === 'string' ? raw.url : '';
   const tabId = typeof raw.tabId === 'number' && Number.isFinite(raw.tabId) ? raw.tabId : undefined;
   const okFromBg = !!(raw.scannable && url && isScannableWebUrl(url) && tabId != null);
@@ -287,7 +279,6 @@ async function getTabScanContextMerged() {
 }
 
 function showPageReadyUi(tabUrl) {
-  popupLog('showPageReadyUi', { tabUrl });
   loadingSection.style.display = 'none';
   resultsSection.style.display = 'none';
   emptySection.hidden = true;
@@ -299,18 +290,10 @@ function showPageReadyUi(tabUrl) {
 }
 
 async function init() {
-  popupLog('init start', {
-    readyState: document.readyState,
-    innerWidth: window.innerWidth,
-    innerHeight: window.innerHeight,
-    bodyClientWidth: document.body ? document.body.clientWidth : null,
-    bodyClientHeight: document.body ? document.body.clientHeight : null
-  });
   await loadState();
   setupEventListeners();
 
   const ctx = await getTabScanContextMerged();
-  popupLog('init tab context', ctx);
   const tabUrl = ctx && ctx.url ? ctx.url : '';
   const scannable = !!(ctx && ctx.scannable);
 
@@ -318,7 +301,6 @@ async function init() {
   activeTargetTabId = typeof ctx?.tabId === 'number' ? ctx.tabId : undefined;
 
   if (scannable) {
-    popupLog('init resolved page mode', { tabUrl, activeTargetTabId });
     uiMode = 'page';
     applyLayoutMode();
     blankIntro.hidden = true;
@@ -330,7 +312,6 @@ async function init() {
         'Could not resolve the page tab from the extension. Close the popup, focus the site tab, and open FontSource again.';
     }
   } else {
-    popupLog('init resolved blank mode', { tabUrl, activeTargetTabId });
     uiMode = 'blank';
     applyLayoutMode();
     activePageBar.hidden = true;
@@ -349,7 +330,6 @@ function applyLayoutMode() {
 
 async function loadState() {
   const response = await sendMessage({ action: 'getState' });
-  popupLog('loadState response', response);
   if (response && response.state) {
     scanOptions = response.state.scanOptions || { scanRoot: false };
     showPreview = response.state.showPreview !== false;
@@ -361,7 +341,6 @@ async function loadState() {
 }
 
 function setupEventListeners() {
-  popupLog('setupEventListeners');
   scanBtn.addEventListener('click', () => openSubmittedUrl());
   if (pageScanBtn) {
     pageScanBtn.addEventListener('click', async () => {
@@ -420,7 +399,6 @@ function setUrlFeedback(message, isError) {
 
 async function openSubmittedUrl() {
   const raw = urlInput.value.trim();
-  popupLog('openSubmittedUrl', { raw });
   if (!raw) {
     setUrlFeedback('Enter full URL.', true);
     return;
@@ -441,7 +419,6 @@ async function openSubmittedUrl() {
 }
 
 async function scanCurrentPage(explicitTabId) {
-  popupLog('scanCurrentPage start', { explicitTabId, activeTargetTabId });
   if (pageScanBtn) {
     pageScanBtn.disabled = true;
   }
@@ -454,13 +431,14 @@ async function scanCurrentPage(explicitTabId) {
   const tabId = explicitTabId != null ? explicitTabId : activeTargetTabId;
 
   try {
-    const response = await sendMessage({
-      action: 'scanPage',
-      options: scanOptions,
-      tabId
-    });
-    popupLog('scanCurrentPage response', response);
-
+    const response = await sendMessageWithTimeout(
+      {
+        action: 'scanPage',
+        options: scanOptions,
+        tabId
+      },
+      SCAN_REQUEST_TIMEOUT_MS
+    );
     if (response && Array.isArray(response.fonts)) {
       currentFonts = response.fonts;
       currentUrl = response.url || currentUrl;
@@ -490,7 +468,6 @@ async function scanCurrentPage(explicitTabId) {
     console.error('Scan error:', e);
     showEmptyState('Failed to scan page. Try reloading the tab.');
   } finally {
-    popupLog('scanCurrentPage finally');
     if (fontScanProgressPort) {
       fontScanProgressPort.onMessage.removeListener(applyScanProgressPayload);
     }
@@ -695,7 +672,6 @@ function familiesForPreviewCss(name) {
 }
 
 async function displayFonts(fonts) {
-  popupLog('displayFonts', { count: Array.isArray(fonts) ? fonts.length : null });
   if (!fonts || fonts.length === 0) {
     showEmptyState('No fonts were detected on this page.');
     return;
@@ -718,9 +694,8 @@ async function displayFonts(fonts) {
     }
   }
 
-  resultsContainer.innerHTML = fonts
-    .map((font, idx) => createFontCard(font, idx, previewHintsByIndex[idx]))
-    .join('');
+  const cards = fonts.map((font, idx) => createFontCardElement(font, idx, previewHintsByIndex[idx]));
+  resultsContainer.replaceChildren(...cards);
 
   resultsSection.style.display = 'block';
   emptySection.hidden = true;
@@ -866,8 +841,150 @@ function createFontCard(font, cardIndex, previewHint) {
   `;
 }
 
+function textEl(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) {
+    el.className = className;
+  }
+  el.textContent = text;
+  return el;
+}
+
+function createFontSourceNode(rawUrl) {
+  if (!rawUrl) {
+    return textEl('span', 'detail-value', 'No file URL');
+  }
+  const href = resolveFontSourceLink(rawUrl, currentUrl);
+  if (!href) {
+    return textEl('span', 'detail-value detail-value--plain', rawUrl);
+  }
+  const link = document.createElement('a');
+  link.className = 'detail-value detail-value--link';
+  link.href = href;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = rawUrl;
+  return link;
+}
+
+function createFontCardElement(font, cardIndex, previewHint) {
+  const sources = font.sourceInfo || [];
+  const source = sources[0] || { service: 'Custom / Self-hosted', license: 'Varies by font' };
+  const firstUse = font.usedInElements && font.usedInElements[0] ? font.usedInElements[0] : null;
+
+  let sourceType = 'custom';
+  if (source.service.toLowerCase().includes('google')) {
+    sourceType = 'google-fonts';
+  } else if (source.service.toLowerCase().includes('adobe')) {
+    sourceType = 'adobe-typekit';
+  } else if (source.service.toLowerCase().includes('fonts.com')) {
+    sourceType = 'fonts-com';
+  }
+
+  const sampleEls = font.usedInElements || [];
+  const usageTotal =
+    typeof font.usageElementCount === 'number' ? font.usageElementCount : sampleEls.length;
+  const usageTruncated = usageTotal > sampleEls.length;
+  const usageNote = usageTruncated
+    ? ` · ${sampleEls.length} sample selector${sampleEls.length !== 1 ? 's' : ''}`
+    : '';
+
+  const card = document.createElement('div');
+  card.className = 'font-card';
+
+  const header = document.createElement('div');
+  header.className = 'font-card-header';
+  header.appendChild(textEl('div', 'font-name', String(font.fontFamily || '')));
+  header.appendChild(textEl('span', `font-source ${sourceType}`, String(source.service || 'Unknown')));
+  card.appendChild(header);
+
+  if (showPreview && previewHint) {
+    const preview = document.createElement('div');
+    preview.className = 'font-card-preview';
+    const stack = previewHint.family
+      ? `'${previewHint.family}', ${familiesForPreviewCss(font.fontFamily)}`
+      : familiesForPreviewCss(font.fontFamily);
+    preview.style.fontFamily = stack;
+    preview.style.fontWeight = previewHint.fontWeight;
+    preview.style.fontStyle = previewHint.fontStyle;
+    preview.style.fontSize = previewHint.fontSize;
+    preview.appendChild(textEl('span', 'font-card-preview-label', 'Preview'));
+    preview.appendChild(textEl('p', 'font-card-preview-sample', 'The quick brown fox jumps over the lazy dog.'));
+    preview.appendChild(textEl('p', 'font-card-preview-meta', String(font.fontFamily || '')));
+    card.appendChild(preview);
+  }
+
+  const details = document.createElement('div');
+  details.className = 'font-details';
+
+  const makeDetail = (label, value) => {
+    const item = document.createElement('div');
+    item.className = 'detail-item';
+    item.appendChild(textEl('span', 'detail-label', label));
+    item.appendChild(textEl('span', 'detail-value', value));
+    return item;
+  };
+
+  details.appendChild(makeDetail('Size', firstUse ? firstUse.fontSize : 'N/A'));
+  details.appendChild(makeDetail('Weight', firstUse ? firstUse.fontWeight : 'N/A'));
+  details.appendChild(makeDetail('Style', firstUse ? firstUse.fontStyle : 'N/A'));
+
+  const sourceItem = document.createElement('div');
+  sourceItem.className = 'detail-item detail-item--full';
+  const sourceHeader = document.createElement('div');
+  sourceHeader.className = 'detail-source-header';
+  sourceHeader.appendChild(textEl('span', 'detail-label', 'Source'));
+  const findBtn = document.createElement('button');
+  findBtn.type = 'button';
+  findBtn.className = 'find-font-btn';
+  findBtn.setAttribute('data-find-index', String(cardIndex));
+  findBtn.title = 'Search the web for this font (uses your Settings search URL)';
+  findBtn.textContent = 'Find';
+  sourceHeader.appendChild(findBtn);
+  sourceItem.appendChild(sourceHeader);
+  const sourceBody = document.createElement('div');
+  sourceBody.className = 'detail-source-body';
+  sourceBody.appendChild(createFontSourceNode(source.url));
+  sourceItem.appendChild(sourceBody);
+  details.appendChild(sourceItem);
+  card.appendChild(details);
+
+  const usage = document.createElement('div');
+  usage.className = 'font-usage';
+  usage.appendChild(textEl('span', 'usage-label', `Used in (${usageTotal} elements${usageNote})`));
+  const usageList = document.createElement('div');
+  usageList.className = 'usage-list';
+  const selectors = sampleEls.slice(0, 5).map((el) => String(el.selector || ''));
+  const usageItems = selectors.length ? selectors : ['N/A'];
+  for (const selector of usageItems) {
+    usageList.appendChild(textEl('span', 'usage-item', selector));
+  }
+  usage.appendChild(usageList);
+  card.appendChild(usage);
+
+  const license = document.createElement('div');
+  license.className = 'font-license';
+  license.appendChild(textEl('span', 'license-label', 'License'));
+  const licenseText = document.createElement('div');
+  licenseText.className = 'license-text';
+  licenseText.appendChild(document.createTextNode(String(source.license || 'Unknown license')));
+  if (source.licenseUrl) {
+    licenseText.appendChild(document.createTextNode(' | '));
+    const licenseLink = document.createElement('a');
+    licenseLink.className = 'license-link';
+    licenseLink.href = source.licenseUrl;
+    licenseLink.target = '_blank';
+    licenseLink.rel = 'noopener noreferrer';
+    licenseLink.textContent = 'View License';
+    licenseText.appendChild(licenseLink);
+  }
+  license.appendChild(licenseText);
+  card.appendChild(license);
+
+  return card;
+}
+
 function showLoading() {
-  popupLog('showLoading');
   removePreviewFontStyles();
   resultsSection.style.display = 'none';
   emptySection.hidden = true;
@@ -876,7 +993,6 @@ function showLoading() {
 }
 
 function showEmptyState(message) {
-  popupLog('showEmptyState', { message });
   removePreviewFontStyles();
   resultsSection.style.display = 'none';
   loadingSection.style.display = 'none';
@@ -892,8 +1008,15 @@ function openSettings() {
       if (maybe && typeof maybe.catch === 'function') {
         maybe.catch(() => {});
       }
+      return;
     } catch (_e) {
       /* ignore */
+    }
+  }
+  if (api && typeof api.getURL === 'function') {
+    const tabsApi = extensionApi().tabs;
+    if (tabsApi && typeof tabsApi.create === 'function') {
+      tabsApi.create({ url: api.getURL('settings/settings.html'), active: true });
     }
   }
 }
@@ -968,9 +1091,7 @@ function truncateUrl(url, maxLength) {
 }
 
 if (document.readyState === 'loading') {
-  popupLog('binding DOMContentLoaded init');
   document.addEventListener('DOMContentLoaded', init);
 } else {
-  popupLog('running init immediately');
   void init();
 }

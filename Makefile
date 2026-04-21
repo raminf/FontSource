@@ -46,19 +46,34 @@ define build_extension_tree
 	@test -f $(SRC_DIR)/icons/icon48.png && test -f $(SRC_DIR)/icons/icon128.png || { printf "$(YELLOW)Missing PNG icons under $(SRC_DIR)/icons/. Run $(GREEN)make icons$(YELLOW) (needs rsvg-convert), or restore tracked files from git.$(RESET)\n"; exit 1; }
 	rm -rf $(1)
 	mkdir -p $(1)
-	cp -R $(SRC_DIR)/. $(1)/
+	cp -R $(SRC_DIR)/* $(1)/
 	rm -f $(1)/manifest.firefox.json $(1)/manifest.safari.json
+	find $(1) -name '.DS_Store' -delete
+endef
+
+define prune_chrome_tree
+	rm -f $(1)/background.firefox.js $(1)/popup/popup.firefox.html
+endef
+
+define prune_firefox_tree
+	rm -f $(1)/manifest.json $(1)/manifest.safari.json
+endef
+
+define prune_safari_tree
+	rm -f $(1)/background.firefox.js $(1)/popup/popup.firefox.html $(1)/manifest.firefox.json
 endef
 
 build-chrome: ## Copy src to artifacts/chrome/ (Chrome MV3 manifest)
 	@printf "$(BLUE)Building extension for Chrome…$(RESET)\n"
 	$(call build_extension_tree,$(CHROME_BUILD_DIR))
+	$(call prune_chrome_tree,$(CHROME_BUILD_DIR))
 	@printf "$(GREEN)Build complete.$(RESET)\n"
 	@printf "$(YELLOW)Load unpacked in Chrome from:$(RESET) $(GREEN)$(CHROME_BUILD_DIR)/$(RESET)\n"
 
 build-firefox: ## Copy src to artifacts/firefox/ with MV2 manifest (Firefox; no service_worker)
 	@printf "$(BLUE)Building extension for Firefox (MV2 manifest)…$(RESET)\n"
 	$(call build_extension_tree,$(FIREFOX_BUILD_DIR))
+	$(call prune_firefox_tree,$(FIREFOX_BUILD_DIR))
 	cp $(SRC_DIR)/manifest.firefox.json $(FIREFOX_BUILD_DIR)/manifest.json
 	@printf "$(GREEN)Firefox build complete.$(RESET)\n"
 	@printf "$(YELLOW)Temporary add-on: pick $(YELLOW)$(FIREFOX_BUILD_DIR)/manifest.json$(RESET) (MV2). See $(GREEN)make load-firefox$(RESET).\n"
@@ -66,6 +81,7 @@ build-firefox: ## Copy src to artifacts/firefox/ with MV2 manifest (Firefox; no 
 build-safari: ## Copy src to artifacts/safari/ with Safari MV3 manifest
 	@printf "$(BLUE)Building extension for Safari…$(RESET)\n"
 	$(call build_extension_tree,$(SAFARI_BUILD_DIR))
+	$(call prune_safari_tree,$(SAFARI_BUILD_DIR))
 	cp $(SRC_DIR)/manifest.safari.json $(SAFARI_BUILD_DIR)/manifest.json
 	@printf "$(GREEN)Safari build complete.$(RESET)\n"
 	@printf "$(YELLOW)Load unpacked in Safari from:$(RESET) $(GREEN)$(SAFARI_BUILD_DIR)/$(RESET)\n"
@@ -85,7 +101,7 @@ format: ## Format with Prettier
 	npm run format
 	@printf "$(GREEN)Format complete.$(RESET)\n"
 
-bump: ## Bump release version: Makefile VERSION, manifests, package.json/lock, Xcode MARKETING_VERSION + build (BUMP=patch|minor|major)
+bump: ## Bump release version: Makefile VERSION, manifests, package.json/lock (BUMP=patch|minor|major)
 	@printf "$(BLUE)Bumping version ($(YELLOW)BUMP=$(or $(BUMP),patch)$(BLUE))...$(RESET)\n"
 	@bash scripts/bump-version.sh "$(or $(BUMP),patch)"
 	@printf "$(GREEN)Bump complete.$(RESET)\n"
@@ -103,12 +119,6 @@ test-panel-baseline-check: ## Diff current scan vs tests/baselines/<slug>.txt (s
 ICON_SRC := media/icon1024.svg
 ICON_LIGHT_SRC := media/icon1024-light.svg
 
-# Safari: Xcode wrapper produced by xcrun safari-web-extension-packager (see package-safari).
-SAFARI_XCODE_DIR := safari/FontSource
-# --rebuild-project must be the .xcodeproj bundle, not the parent folder (Xcode 16+:
-# "Files of type 'Folder' cannot be opened outside of a workspace.").
-SAFARI_XCODEPROJ := $(SAFARI_XCODE_DIR)/FontSource.xcodeproj
-
 icons: ## Regenerate src/icons PNGs from $(ICON_SRC) and $(ICON_LIGHT_SRC) (needs rsvg-convert)
 	@command -v rsvg-convert >/dev/null 2>&1 || { printf "$(YELLOW)rsvg-convert not found. Install with: brew install librsvg$(RESET)\n"; exit 1; }
 	@test -f $(ICON_SRC) || { printf "$(YELLOW)Missing $(ICON_SRC)$(RESET)\n"; exit 1; }
@@ -123,31 +133,22 @@ icons: ## Regenerate src/icons PNGs from $(ICON_SRC) and $(ICON_LIGHT_SRC) (need
 package-chrome: build-chrome ## Zip artifacts/chrome/ for Chrome Web Store (MV3)
 	@printf "$(BLUE)Packaging Chrome...$(RESET)\n"
 	cp $(SRC_DIR)/manifest.json $(CHROME_BUILD_DIR)/manifest.json
-	cd $(CHROME_BUILD_DIR) && zip -r ../fontsource-chrome-$(VERSION).zip .
+	cd $(CHROME_BUILD_DIR) && zip -r ../fontsource-chrome-$(VERSION).zip . -x "*/.DS_Store" ".DS_Store" "__MACOSX/*"
 	@printf "$(GREEN)Created $(ARTIFACTS_DIR)/fontsource-chrome-$(VERSION).zip$(RESET)\n"
 
 package-firefox: build-firefox ## Zip artifacts/firefox/ (MV2 manifest already in manifest.json)
 	@printf "$(BLUE)Packaging Firefox...$(RESET)\n"
-	cd $(FIREFOX_BUILD_DIR) && zip -r ../fontsource-firefox-$(VERSION).zip .
+	cd $(FIREFOX_BUILD_DIR) && zip -r ../fontsource-firefox-$(VERSION).zip . -x "*/.DS_Store" ".DS_Store" "__MACOSX/*"
 	@printf "$(GREEN)Created $(ARTIFACTS_DIR)/fontsource-firefox-$(VERSION).zip$(RESET)\n"
 	@printf "$(YELLOW)Firefox:$(RESET) for $(YELLOW)about:debugging$(RESET) temporary load, prefer $(GREEN)$(FIREFOX_BUILD_DIR)/manifest.json$(RESET) (not the zip). For $(YELLOW)Install Add-on From File$(RESET), use this zip only after $(GREEN)make package-firefox$(RESET); it includes $(YELLOW)browser_specific_settings.gecko.id$(RESET).\n"
 
-package-safari: build-safari ## macOS: copy Safari manifest into artifacts/safari/, then rebuild Safari Xcode project via packager
-	@printf "$(BLUE)Packaging Safari Web Extension (Xcode)…$(RESET)\n"
-	@test "$$(uname -s)" = "Darwin" || { printf "$(YELLOW)package-safari requires macOS (xcrun safari-web-extension-packager).$(RESET)\n"; exit 1; }
-	@xcrun --find safari-web-extension-packager >/dev/null 2>&1 || { printf "$(YELLOW)safari-web-extension-packager not found. Install Xcode Command Line Tools / Xcode.$(RESET)\n"; exit 1; }
-	@test -d "$(SAFARI_XCODEPROJ)" || { printf "$(YELLOW)Missing $(SAFARI_XCODEPROJ). Create the wrapper once from the repo root, e.g.$(RESET)\n"; printf "  $(GREEN)xcrun safari-web-extension-packager \"$(CURDIR)/$(SAFARI_BUILD_DIR)\" --project-location \"$(CURDIR)/safari\" --app-name FontSource --bundle-identifier com.example.fontsource --swift --no-open --no-prompt$(RESET)\n"; exit 1; }
-	cp $(SRC_DIR)/manifest.safari.json $(SAFARI_BUILD_DIR)/manifest.json
-	xcrun safari-web-extension-packager "$(CURDIR)/$(SAFARI_BUILD_DIR)" \
-		--rebuild-project "$(CURDIR)/$(SAFARI_XCODEPROJ)" \
-		--copy-resources \
-		--no-open \
-		--no-prompt \
-		--force
-	@printf "$(GREEN)Safari Xcode project updated at $(SAFARI_XCODE_DIR).$(RESET)\n"
-	@printf "$(YELLOW)Next:$(RESET) Open $(YELLOW)$(SAFARI_XCODE_DIR)/FontSource.xcodeproj$(RESET) in Xcode, select the macOS/iOS scheme, then $(YELLOW)Product > Archive$(RESET) for App Store / notarized distribution.\n"
+package-safari: build-safari ## Zip artifacts/safari/ for App Store Connect Safari Web Extension Packager
+	@printf "$(BLUE)Packaging Safari web extension archive...$(RESET)\n"
+	cd $(SAFARI_BUILD_DIR) && zip -r ../fontsource-safari-webext-$(VERSION).zip . -x "*/.DS_Store" ".DS_Store" "__MACOSX/*"
+	@printf "$(GREEN)Created $(ARTIFACTS_DIR)/fontsource-safari-webext-$(VERSION).zip$(RESET)\n"
+	@printf "$(YELLOW)Upload this archive in App Store Connect > Xcode Cloud > Safari Web Extension Packager.$(RESET)\n"
 
-package: package-chrome package-firefox package-safari ## Chrome/Firefox zips + Safari Xcode packager (macOS only)
+package: package-chrome package-firefox package-safari ## Build all distribution archives
 	@printf "$(GREEN)All platform packages finished.$(RESET)\n"
 
 load-chrome: ## Print steps to load unpacked extension in Chrome
@@ -182,7 +183,7 @@ load-safari: ## Print steps to load a Safari Web Extension folder
 	@printf "$(GREEN)2.$(RESET) Safari menu $(YELLOW)> Settings$(RESET): under $(YELLOW)Advanced$(RESET), enable $(YELLOW)Show features for web developers$(RESET) (wording may vary by version).\n"
 	@printf "$(GREEN)3.$(RESET) Open the $(YELLOW)Developer$(RESET) settings tab: enable $(YELLOW)Allow unsigned extensions$(RESET) if you are sideloading unsigned builds (may reset when Safari quits).\n"
 	@printf "$(GREEN)4.$(RESET) Still in Settings: on supported Safari versions, use $(YELLOW)Add Temporary Extension…$(RESET) (Developer tab) and select the $(YELLOW)$(SAFARI_BUILD_DIR)$(RESET) folder that contains manifest.json.\n"
-	@printf "$(GREEN)5.$(RESET) If your Safari version has no temporary-extension option, run $(YELLOW)make package-safari$(RESET), open $(YELLOW)$(SAFARI_XCODE_DIR)/FontSource.xcodeproj$(RESET), build/run the container app once, then enable the extension under Settings $(YELLOW)> Extensions$(RESET).\n"
+	@printf "$(GREEN)5.$(RESET) For App Store Connect / Xcode Cloud packaging, run $(YELLOW)make package-safari$(RESET) and upload $(YELLOW)$(ARTIFACTS_DIR)/fontsource-safari-webext-$(VERSION).zip$(RESET).\n"
 	@printf "\n"
 	@printf "$(YELLOW)There is no FontSource.safariextension bundle in this repo; Safari Web Extensions use manifest.json like Chrome.$(RESET)\n"
 
@@ -210,11 +211,12 @@ deploy-firefox: package-firefox ## Package Firefox zip and print AMO upload step
 	@printf "$(GREEN)1.$(RESET) Open $(YELLOW)https://addons.mozilla.org/developers/$(RESET)\n"
 	@printf "$(GREEN)2.$(RESET) Submit $(YELLOW)$(ARTIFACTS_DIR)/fontsource-firefox-$(VERSION).zip$(RESET) and complete listing metadata.\n"
 
-deploy-safari: package-safari ## After package-safari, print Xcode archive / App Store notes
+deploy-safari: package-safari ## Print Safari Web Extension Packager upload steps
 	@printf "$(BLUE)Safari distribution$(RESET)\n"
-	@printf "$(GREEN)1.$(RESET) Open $(YELLOW)$(SAFARI_XCODE_DIR)/FontSource.xcodeproj$(RESET) and set signing team / bundle IDs for your Apple Developer account.\n"
-	@printf "$(GREEN)2.$(RESET) $(YELLOW)Product > Archive$(RESET), then distribute via Organizer (App Store Connect or notarized export).\n"
-	@printf "$(GREEN)3.$(RESET) See $(YELLOW)https://developer.apple.com/documentation/safariservices/safari_web_extensions$(RESET)\n"
+	@printf "$(GREEN)1.$(RESET) Open App Store Connect and select your app record.\n"
+	@printf "$(GREEN)2.$(RESET) Open the $(YELLOW)Xcode Cloud$(RESET) tab, then $(YELLOW)Safari Web Extension Packager$(RESET).\n"
+	@printf "$(GREEN)3.$(RESET) Upload $(YELLOW)$(ARTIFACTS_DIR)/fontsource-safari-webext-$(VERSION).zip$(RESET).\n"
+	@printf "$(GREEN)4.$(RESET) Review the packaged build in App Store Connect / TestFlight before submission.\n"
 
 deploy: deploy-chrome deploy-firefox deploy-safari ## Package all zips and print store reminders
 	@printf "$(GREEN)Packaging/reminders finished for all targets.$(RESET)\n"

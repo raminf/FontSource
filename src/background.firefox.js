@@ -63,6 +63,20 @@ function tabsQuery(query, callback) {
 }
 
 const DEFAULT_FIND_SEARCH_TEMPLATE = 'https://www.google.com/search?q={query}';
+const FIREFOX_RESTRICTED_HOSTS = new Set([
+  'accounts-static.cdn.mozilla.net',
+  'accounts.firefox.com',
+  'addons.cdn.mozilla.net',
+  'addons.mozilla.org',
+  'api.accounts.firefox.com',
+  'content.cdn.mozilla.net',
+  'discovery.addons.mozilla.org',
+  'install.mozilla.org',
+  'oauth.accounts.firefox.com',
+  'profile.accounts.firefox.com',
+  'support.mozilla.org',
+  'sync.services.mozilla.com'
+]);
 
 // Extension state
 let state = {
@@ -249,6 +263,22 @@ function isScannablePage(url) {
   return false;
 }
 
+function getRestrictedPageReason(url) {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+  try {
+    const parsed = new URL(url);
+    const host = (parsed.hostname || '').toLowerCase();
+    if (FIREFOX_RESTRICTED_HOSTS.has(host)) {
+      return `Firefox blocks extensions from injecting scripts on ${host}. Open a different site to scan fonts there.`;
+    }
+  } catch {
+    return '';
+  }
+  return '';
+}
+
 /**
  * Open a URL in the active tab (e.g. from about:blank) or a new tab.
  * Call only from a user gesture (popup button).
@@ -379,7 +409,7 @@ async function fetchRemoteStylesheetFontFaces(hrefs) {
 }
 
 /**
- * Firefox MV2 / older hosts: no chrome.scripting — use tabs.executeScript.
+ * Firefox MV2 inject path using tabs.executeScript.
  * @param {number} tabId
  * @returns {Promise<boolean>}
  */
@@ -433,76 +463,11 @@ async function ensureContentScriptsInjectedMV2(tabId) {
 }
 
 /**
- * Chrome MV3: programmatic inject via chrome.scripting.
- * @param {number} tabId
- * @returns {Promise<boolean>}
- */
-async function ensureContentScriptsInjectedMV3(tabId) {
-  const target = { tabId, allFrames: false };
-  const contentOnly = ['content.js'];
-  const both = ['lib/font-detection.js', 'content.js'];
-
-  let files = both;
-  try {
-    const probe = await chrome.scripting.executeScript({
-      target,
-      func: () => typeof globalThis.detectFontsWithProgress === 'function'
-    });
-    if (probe && probe[0] && probe[0].result === true) {
-      files = contentOnly;
-    }
-  } catch {
-    files = both;
-  }
-
-  const attempts = [
-    { files },
-    { files, injectImmediately: true }
-  ];
-  let lastErr;
-  for (const a of attempts) {
-    try {
-      await chrome.scripting.executeScript({
-        target,
-        files: a.files,
-        ...(a.injectImmediately ? { injectImmediately: true } : {})
-      });
-      return true;
-    } catch (e) {
-      lastErr = e;
-      const msg = e && e.message ? String(e.message) : '';
-      if (a.files === both && /already been declared|Identifier .* has already been declared/i.test(msg)) {
-        try {
-          await chrome.scripting.executeScript({
-            target,
-            files: contentOnly,
-            ...(a.injectImmediately ? { injectImmediately: true } : {})
-          });
-          return true;
-        } catch (e2) {
-          lastErr = e2;
-        }
-      }
-    }
-  }
-  console.warn('FontSource: programmatic content-script inject failed', lastErr);
-  return false;
-}
-
-/**
- * Inject content scripts manually when tabs.sendMessage finds no listener (SPA / bfcache / timing).
- * Must load lib/font-detection.js whenever the scan engine is missing — injecting content.js alone
- * leaves detectFontsWithProgress undefined (ReferenceError on scan).
- * When the manifest already ran font-detection.js, skip re-injecting it: duplicate top-level const
- * in that file throws. Probe the isolated world first.
+ * Firefox MV2 inject path only.
  * @param {number} tabId
  * @returns {Promise<boolean>}
  */
 async function ensureContentScriptsInjected(tabId) {
-  if (typeof chrome !== 'undefined' && chrome.scripting && chrome.scripting.executeScript) {
-    return ensureContentScriptsInjectedMV3(tabId);
-  }
-  /* Firefox MV2 has no chrome.scripting; MV2 executeScript path is unused on Chrome/Safari MV3. */
   return ensureContentScriptsInjectedMV2(tabId);
 }
 
@@ -621,6 +586,11 @@ async function scanCurrentPage(options = {}, tabIdOpt) {
         'This tab has no normal webpage to scan (blank or built-in page). Enter a URL below to open a site, then open FontSource again after it loads.',
       blank: true
     };
+  }
+
+  const restrictedReason = getRestrictedPageReason(currentUrl);
+  if (restrictedReason) {
+    return { error: restrictedReason };
   }
 
   if (Object.keys(options).length > 0) {

@@ -46,6 +46,7 @@ firefox-artifacts/
 
 # Safari specific
 *.safariextension
+safari/
 
 # Xcode / Apple — user state, local config, signing material (never commit secrets)
 **/xcuserdata/

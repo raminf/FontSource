@@ -82,7 +82,7 @@ make package-safari
 |---------|-------------|
 | `make package-chrome` | Create Chrome Web Store package |
 | `make package-firefox` | Create Firefox Add-ons package |
-| `make package-safari` | Create Safari App Store package |
+| `make package-safari` | Create the Safari Web Extension Packager upload archive |
 | `make package` | Create packages for all platforms |
 
 ### Deployment
@@ -90,7 +90,7 @@ make package-safari
 |---------|-------------|
 | `make deploy-chrome` | Deploy to Chrome Web Store |
 | `make deploy-firefox` | Deploy to Firefox Add-ons |
-| `make deploy-safari` | Print Safari distribution steps |
+| `make deploy-safari` | Print Safari Web Extension Packager upload steps |
 | `make deploy` | Deploy to all stores |
 
 ### Help
