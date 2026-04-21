@@ -4,6 +4,8 @@
 
 A browser extension that analyzes websites to identify fonts, their sources, and license information.
 
+Safari ships through a small tracked macOS host app under `safari/`, while Chrome and Firefox ship from the web-extension sources in `src/`.
+
 ## Features
 
 - Detects fonts used on any website
@@ -41,7 +43,7 @@ make test
 # Package for distribution
 make package-chrome
 make package-firefox
-make package-safari
+make package-safari  # Safari web-extension source archive only
 ```
 
 ## Makefile Commands
@@ -53,7 +55,7 @@ make package-safari
 | `make build` | Build all browser targets under `artifacts/` |
 | `make build-chrome` | Build for Chrome (`manifest.json` in `artifacts/chrome/`) |
 | `make build-firefox` | Build for Firefox (MV2 manifest in `artifacts/firefox/`; required for temporary add-on) |
-| `make build-safari` | Build for Safari (`manifest.json` in `artifacts/safari/`) |
+| `make build-safari` | Build Safari web-extension resources (`manifest.json` in `artifacts/safari/`) |
 | `make clean` | Remove `artifacts/` (unpacked extension and store zips); keeps `node_modules` |
 
 ### Development
@@ -82,7 +84,7 @@ make package-safari
 |---------|-------------|
 | `make package-chrome` | Create Chrome Web Store package |
 | `make package-firefox` | Create Firefox Add-ons package |
-| `make package-safari` | Create the Safari Web Extension Packager upload archive |
+| `make package-safari` | Create the Safari web-extension source archive |
 | `make package` | Create packages for all platforms |
 
 ### Deployment
@@ -90,7 +92,7 @@ make package-safari
 |---------|-------------|
 | `make deploy-chrome` | Deploy to Chrome Web Store |
 | `make deploy-firefox` | Deploy to Firefox Add-ons |
-| `make deploy-safari` | Print Safari Web Extension Packager upload steps |
+| `make deploy-safari` | Print Safari packaging reminders |
 | `make deploy` | Deploy to all stores |
 
 ### Help
@@ -106,8 +108,8 @@ FontSource/
 ├── artifacts/                 # make build / package-* output (gitignored)
 │   ├── chrome/                # unpacked Chrome extension
 │   ├── firefox/               # unpacked Firefox extension
-│   ├── safari/                # unpacked Safari extension
-│   └── fontsource-*.zip       # Chrome / Firefox packages after make package-*
+│   ├── safari/                # unpacked Safari web-extension resources
+│   └── fontsource-*.zip       # store/upload archives
 ├── src/
 │   ├── background.js          # Background service worker
 │   ├── content.js             # Content script for font detection
@@ -121,15 +123,29 @@ FontSource/
 │   │   └── settings.js
 │   └── lib/                   # Utility libraries
 │       └── font-detection.js
-├── manifest.json              # Chrome manifest
-├── manifest.firefox.json      # Firefox manifest
-├── manifest.safari.json       # Safari manifest
+├── safari/                    # tracked macOS Safari host app + extension wrapper
+├── src/manifest.json          # Chrome manifest
+├── src/manifest.firefox.json  # Firefox manifest
+├── src/manifest.safari.json   # Safari manifest
 ├── package.json               # npm package config
 ├── Makefile                   # Build and deployment commands
 ├── .gitignore
 ├── .eslintrc.json
 └── .prettierrc.json
 ```
+
+## Release Automation
+
+- Chrome GitHub Actions publish is ready once `CHROME_EXTENSION_ID`, `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, and `CHROME_REFRESH_TOKEN` are added as repository secrets.
+- Firefox GitHub Actions publish is ready once `WEB_EXT_API_KEY` and `WEB_EXT_API_SECRET` are added as repository secrets.
+- Safari GitHub Actions uses the tracked `safari/FontSource.xcodeproj` wrapper on `macos-latest`, archives a signed macOS app, exports a `.pkg`, and uploads it to App Store Connect.
+- Safari requires Apple signing and upload secrets. See `env.example` for the current secret names.
+
+## Safari Notes
+
+- The Safari Xcode project is safe to keep in git. User state, certificates, private keys, provisioning profiles, and generated extension resources stay ignored.
+- The Xcode wrapper reads extension files from `src/` at build time, so there is no second source tree to maintain under `safari/`.
+- `make package-safari` only creates the Safari web-extension source archive. The Mac App Store release path goes through the Xcode project and GitHub Actions Safari job.
 
 ## Development
 
