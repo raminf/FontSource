@@ -82,6 +82,9 @@ ICON_LIGHT_SRC := media/icon1024-light.svg
 
 # Safari: Xcode wrapper produced by xcrun safari-web-extension-packager (see package-safari).
 SAFARI_XCODE_DIR := safari/FontSource
+# --rebuild-project must be the .xcodeproj bundle, not the parent folder (Xcode 16+:
+# "Files of type 'Folder' cannot be opened outside of a workspace.").
+SAFARI_XCODEPROJ := $(SAFARI_XCODE_DIR)/FontSource.xcodeproj
 
 icons: ## Regenerate src/icons PNGs from $(ICON_SRC) and $(ICON_LIGHT_SRC) (needs rsvg-convert)
 	@command -v rsvg-convert >/dev/null 2>&1 || { printf "$(YELLOW)rsvg-convert not found. Install with: brew install librsvg$(RESET)\n"; exit 1; }
@@ -110,10 +113,10 @@ package-safari: build ## macOS: copy Safari manifest into dist, then rebuild Saf
 	@printf "$(BLUE)Packaging Safari Web Extension (Xcode)…$(RESET)\n"
 	@test "$$(uname -s)" = "Darwin" || { printf "$(YELLOW)package-safari requires macOS (xcrun safari-web-extension-packager).$(RESET)\n"; exit 1; }
 	@xcrun --find safari-web-extension-packager >/dev/null 2>&1 || { printf "$(YELLOW)safari-web-extension-packager not found. Install Xcode Command Line Tools / Xcode.$(RESET)\n"; exit 1; }
-	@test -d "$(SAFARI_XCODE_DIR)/FontSource.xcodeproj" || { printf "$(YELLOW)Missing $(SAFARI_XCODE_DIR)/FontSource.xcodeproj. Create the wrapper once from the repo root, e.g.$(RESET)\n"; printf "  $(GREEN)xcrun safari-web-extension-packager \"$(CURDIR)/$(BUILD_DIR)\" --project-location \"$(CURDIR)/safari\" --app-name FontSource --bundle-identifier com.example.fontsource --swift --no-open --no-prompt$(RESET)\n"; exit 1; }
+	@test -d "$(SAFARI_XCODEPROJ)" || { printf "$(YELLOW)Missing $(SAFARI_XCODEPROJ). Create the wrapper once from the repo root, e.g.$(RESET)\n"; printf "  $(GREEN)xcrun safari-web-extension-packager \"$(CURDIR)/$(BUILD_DIR)\" --project-location \"$(CURDIR)/safari\" --app-name FontSource --bundle-identifier com.example.fontsource --swift --no-open --no-prompt$(RESET)\n"; exit 1; }
 	cp $(SRC_DIR)/manifest.safari.json $(BUILD_DIR)/manifest.json
 	xcrun safari-web-extension-packager "$(CURDIR)/$(BUILD_DIR)" \
-		--rebuild-project "$(CURDIR)/$(SAFARI_XCODE_DIR)" \
+		--rebuild-project "$(CURDIR)/$(SAFARI_XCODEPROJ)" \
 		--copy-resources \
 		--no-open \
 		--no-prompt \

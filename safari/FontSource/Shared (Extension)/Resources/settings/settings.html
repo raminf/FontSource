@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FontSource - Settings</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Settings</h1>
+      <button class="close-btn" id="closeBtn">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="content">
+      <!-- Scanning Options -->
+      <section class="settings-section">
+        <h2>Scanning Options</h2>
+        <div class="setting-item">
+          <div class="setting-label">
+            <span>Scan Scope</span>
+            <span class="setting-description">Choose whether to scan from the root of the site or just the current page</span>
+          </div>
+          <div class="setting-control">
+            <label class="radio-label">
+              <input type="radio" name="scanScope" value="current" checked>
+              <span class="radio-text">Current Page Only</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="scanScope" value="root">
+              <span class="radio-text">Root of Site</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Web search for fonts -->
+      <section class="settings-section">
+        <h2>Font web search</h2>
+        <div class="setting-item">
+          <div class="setting-label">
+            <span>Search engine</span>
+            <span class="setting-description">Used by the Find button next to each font source in the popup. The URL must include <code>{query}</code> where the search terms go.</span>
+          </div>
+          <div class="setting-control setting-control--stack">
+            <label class="select-label" for="findSearchPreset">Preset</label>
+            <select id="findSearchPreset" class="setting-select">
+              <option value="google">Google</option>
+              <option value="duckduckgo">DuckDuckGo</option>
+              <option value="bing">Bing</option>
+              <option value="ecosia">Ecosia</option>
+              <option value="perplexity">Perplexity</option>
+              <option value="kagi">Kagi</option>
+              <option value="custom">Custom URL…</option>
+            </select>
+            <label class="select-label" for="findSearchTemplate">Search URL template</label>
+            <input type="text" id="findSearchTemplate" class="setting-text-input" spellcheck="false" autocomplete="off" placeholder="https://www.google.com/search?q={query}">
+          </div>
+        </div>
+      </section>
+
+      <!-- Display Options -->
+      <section class="settings-section">
+        <h2>Display Options</h2>
+        <div class="setting-item">
+          <div class="setting-label">
+            <span>Show Font Preview</span>
+            <span class="setting-description">Display a preview of each font in the results</span>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-label">
+              <input type="checkbox" id="showPreview" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <span>Group by Source</span>
+            <span class="setting-description">Group fonts by their source service</span>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-label">
+              <input type="checkbox" id="groupBySource">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section class="settings-section">
+        <h2>About</h2>
+        <div class="about-info">
+          <p><strong>FontSource</strong> <span id="settingsAppVersion"></span></p>
+          <p>A browser extension for detecting fonts, their sources, and license information.</p>
+          <div class="links">
+            <a href="https://github.com/raminf/FontSource" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/raminf/FontSource/blob/main/README.md" target="_blank" rel="noopener noreferrer">Documentation</a>
+            <a href="https://github.com/raminf/FontSource/issues" target="_blank" rel="noopener noreferrer">Report Issue</a>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="footer">
+      <button class="save-btn" id="saveBtn">Save Changes</button>
+    </div>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 //  SafariWebExtensionHandler.swift
 //  Shared (Extension)
 //
-//  Created by Ramin Firoozye on 4/20/26.
+//  Created by Ramin Firoozye on 4/21/26.
 //
 
 import SafariServices

@@ -2,7 +2,7 @@
 //  ViewController.swift
 //  Shared (App)
 //
-//  Created by Ramin Firoozye on 4/20/26.
+//  Created by Ramin Firoozye on 4/21/26.
 //
 
 import WebKit
@@ -16,7 +16,7 @@ import SafariServices
 typealias PlatformViewController = NSViewController
 #endif
 
-let extensionBundleIdentifier = "com.yourCompany.FontSource.Extension"
+let extensionBundleIdentifier = "com.raminfiroozye.FontSource.Extension"
 
 class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMessageHandler {
 

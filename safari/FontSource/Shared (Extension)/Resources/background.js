@@ -289,10 +289,9 @@ async function fetchRemoteStylesheetFontFaces(hrefs) {
 
 /**
  * Inject content scripts manually when tabs.sendMessage finds no listener (SPA / bfcache / timing).
- * Must load lib/font-detection.js whenever the scan engine is missing — injecting content.js alone
- * leaves detectFontsWithProgress undefined (ReferenceError on scan).
- * When the manifest already ran font-detection.js, skip re-injecting it: duplicate top-level const
- * in that file throws. Probe the isolated world first.
+ * Never load lib/font-detection.js again if the manifest already did — duplicate top-level const
+ * throws and leaves the page without a working listener. Prefer re-running content.js only
+ * (re-attaches onMessage); fall back to font-detection + content only when needed.
  * @param {number} tabId
  * @returns {Promise<boolean>}
  */
@@ -303,23 +302,11 @@ async function ensureContentScriptsInjected(tabId) {
   const target = { tabId, allFrames: false };
   const contentOnly = ['content.js'];
   const both = ['lib/font-detection.js', 'content.js'];
-
-  let files = both;
-  try {
-    const probe = await chrome.scripting.executeScript({
-      target,
-      func: () => typeof globalThis.detectFontsWithProgress === 'function'
-    });
-    if (probe && probe[0] && probe[0].result === true) {
-      files = contentOnly;
-    }
-  } catch {
-    files = both;
-  }
-
   const attempts = [
-    { files },
-    { files, injectImmediately: true }
+    { files: contentOnly },
+    { files: contentOnly, injectImmediately: true },
+    { files: both },
+    { files: both, injectImmediately: true }
   ];
   let lastErr;
   for (const a of attempts) {
@@ -332,19 +319,6 @@ async function ensureContentScriptsInjected(tabId) {
       return true;
     } catch (e) {
       lastErr = e;
-      const msg = e && e.message ? String(e.message) : '';
-      if (a.files === both && /already been declared|Identifier .* has already been declared/i.test(msg)) {
-        try {
-          await chrome.scripting.executeScript({
-            target,
-            files: contentOnly,
-            ...(a.injectImmediately ? { injectImmediately: true } : {})
-          });
-          return true;
-        } catch (e2) {
-          lastErr = e2;
-        }
-      }
     }
   }
   console.warn('FontSource: programmatic content-script inject failed', lastErr);

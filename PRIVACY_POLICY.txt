@@ -1,0 +1,75 @@
+FontSource — Privacy Policy
+=============================
+
+This document describes how the FontSource browser extension handles information.
+FontSource is open source. This policy matches what the extension does in code:
+it does not send your browsing data to a FontSource-operated service.
+
+Last updated: April 2026
+
+
+1. Who we are
+-------------
+“FontSource” means the browser extension distributed under this name (Chrome,
+Firefox, Safari, etc.). There is no FontSource login, account, or cloud backend
+run by the extension for storing your activity.
+
+
+2. Data we do not collect
+-------------------------
+The extension does not:
+
+  • Track or profile you for advertising
+  • Run analytics or crash reporting to a FontSource-controlled server
+  • Sell or rent personal data
+  • Upload the list of sites you visit to FontSource
+
+Browser vendors (Google, Apple, Mozilla, etc.) may collect their own
+aggregated store or browser telemetry according to their policies; that is
+outside this extension’s code.
+
+
+3. What stays on your device
+----------------------------
+FontSource saves a small set of **local-only** settings using the browser’s
+extension storage (e.g. Chrome’s `chrome.storage.local`). That typically
+includes things like scan options, UI preferences (e.g. preview on/off,
+grouping), and your “find font” search URL template.
+
+This data remains on your device unless your browser syncs extension data
+according to **your** browser and account settings (FontSource does not
+implement its own sync server).
+
+
+4. What happens when you scan a page
+------------------------------------
+When you run a font scan, processing happens in your browser: the extension
+reads information from the active page (such as styles and computed fonts) to
+show you results.
+
+To resolve fonts loaded from other hosts (for example Google Fonts or Adobe
+Fonts stylesheets), the extension’s background portion may **request those
+stylesheet URLs over HTTPS** so it can parse public CSS (e.g. `@font-face`)
+and show source and license hints. Those requests go to the **same third-party
+hosts** the page already uses; they are not sent to a separate “FontSource”
+analytics API. The extension does not execute remote JavaScript as extension
+code; it fetches stylesheet text for parsing.
+
+
+5. Children
+-----------
+FontSource is a general-purpose developer tool and is not directed at children.
+We do not knowingly collect personal information from children.
+
+
+6. Changes
+----------
+We may update this file when the extension’s behavior changes. The current
+version is always the copy in this repository next to the source code.
+
+
+7. Contact
+----------
+Because there is no dedicated support desk, questions or concerns are best
+handled through the public issue tracker on the project’s GitHub repository
+(linked from the store listing or repository README).
