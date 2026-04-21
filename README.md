@@ -69,7 +69,6 @@ make package-safari
 | `make load-chrome` | Load extension in Chrome (development) |
 | `make load-firefox` | Load extension in Firefox (development) |
 | `make load-safari` | Load extension in Safari (development) |
-| `make load` | Load extension (auto-detects browser) |
 
 ### Uninstalling from Browser
 | Command | Description |
@@ -77,7 +76,6 @@ make package-safari
 | `make uninstall-chrome` | Uninstall from Chrome |
 | `make uninstall-firefox` | Uninstall from Firefox |
 | `make uninstall-safari` | Uninstall from Safari |
-| `make uninstall` | Uninstall (auto-detects browser) |
 
 ### Packaging
 | Command | Description |
@@ -92,7 +90,7 @@ make package-safari
 |---------|-------------|
 | `make deploy-chrome` | Deploy to Chrome Web Store |
 | `make deploy-firefox` | Deploy to Firefox Add-ons |
-| `make deploy-safari` | Deploy to Safari App Store |
+| `make deploy-safari` | Print Safari distribution steps |
 | `make deploy` | Deploy to all stores |
 
 ### Help
