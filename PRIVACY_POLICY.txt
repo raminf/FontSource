@@ -1,8 +1,6 @@
 FontSource — Privacy Policy
 =============================
 
-At a glance — personal data collected or accessed
---------------------------------------------------
 Personal data collected for the FontSource project (sent to servers we run): NONE. 
 
 There is no FontSource account, no sign-up, and no pipeline that uploads
