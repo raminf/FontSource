@@ -39,24 +39,7 @@
       "16": "icons/icon16.png",
       "24": "icons/icon24.png",
       "32": "icons/icon32.png"
-    },
-    "theme_icons": [
-      {
-        "light": "icons/icon16.png",
-        "dark": "icons/icon16-light.png",
-        "size": 16
-      },
-      {
-        "light": "icons/icon24.png",
-        "dark": "icons/icon24-light.png",
-        "size": 24
-      },
-      {
-        "light": "icons/icon32.png",
-        "dark": "icons/icon32-light.png",
-        "size": 32
-      }
-    ]
+    }
   },
   "options_page": "settings/settings.html",
   "web_accessible_resources": [

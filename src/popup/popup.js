@@ -126,39 +126,6 @@ function sendMessage(payload) {
   });
 }
 
-/**
- * Chrome manifest theme_icons are not always applied; match toolbar to OS dark mode.
- */
-function applyToolbarIconForColorScheme() {
-  if (typeof chrome === 'undefined' || !chrome.action || !chrome.action.setIcon) {
-    return;
-  }
-  const dark =
-    typeof window !== 'undefined' &&
-    window.matchMedia &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const paths = dark
-    ? {
-        16: 'icons/icon16-light.png',
-        24: 'icons/icon24-light.png',
-        32: 'icons/icon32-light.png',
-        48: 'icons/icon48-light.png',
-        128: 'icons/icon128-light.png'
-      }
-    : {
-        16: 'icons/icon16.png',
-        24: 'icons/icon24.png',
-        32: 'icons/icon32.png',
-        48: 'icons/icon48.png',
-        128: 'icons/icon128.png'
-      };
-  try {
-    chrome.action.setIcon({ path: paths });
-  } catch (e) {
-    /* ignore */
-  }
-}
-
 function showPageReadyUi(tabUrl) {
   loadingSection.style.display = 'none';
   resultsSection.style.display = 'none';
@@ -171,15 +138,6 @@ function showPageReadyUi(tabUrl) {
 }
 
 async function init() {
-  applyToolbarIconForColorScheme();
-  try {
-    window
-      .matchMedia('(prefers-color-scheme: dark)')
-      .addEventListener('change', applyToolbarIconForColorScheme);
-  } catch (e) {
-    /* ignore */
-  }
-
   await loadState();
   setupEventListeners();
 

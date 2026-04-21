@@ -174,6 +174,39 @@ function extractFontFamilies(fontFamilyString) {
 }
 
 /**
+ * Map key so computed style names match @font-face names (e.g. "freight sans pro" vs "freight-sans-pro").
+ * @param {string} family already lowercased from extractFontFamilies
+ * @returns {string}
+ */
+function fontFamiliesMapKey(family) {
+  const raw = String(family || '')
+    .trim()
+    .replace(/^["']|["']$/g, '');
+  if (!raw) {
+    return '';
+  }
+  return raw.replace(/[\s._-]+/g, '');
+}
+
+/**
+ * Prefer a display name that looks like the webfont declaration (hyphenated) over the browser's spaced form.
+ * @param {string} current
+ * @param {string} incoming
+ * @returns {string}
+ */
+function pickRicherFontFamilyLabel(current, incoming) {
+  const cur = String(current || '');
+  const inc = String(incoming || '');
+  if (!inc) {
+    return cur;
+  }
+  if (inc.includes('-') && !cur.includes('-')) {
+    return inc;
+  }
+  return cur;
+}
+
+/**
  * Get font metadata by name (system fonts only — webfont sources come from URLs).
  */
 function getFontMetadata(fontName) {
@@ -324,8 +357,12 @@ function getFontFaceRules() {
 function mergeFontFaceRuleIntoMap(fonts, rule) {
   const families = extractFontFamilies(rule.fontFamily);
   for (const family of families) {
-    if (!fonts.has(family)) {
-      fonts.set(family, {
+    const key = fontFamiliesMapKey(family);
+    if (!key) {
+      continue;
+    }
+    if (!fonts.has(key)) {
+      fonts.set(key, {
         fontFamily: family,
         sources: [],
         fontFaceRules: [rule],
@@ -333,9 +370,10 @@ function mergeFontFaceRuleIntoMap(fonts, rule) {
         usageElementHits: 0
       });
     } else {
-      const font = fonts.get(family);
+      const font = fonts.get(key);
       font.fontFaceRules = font.fontFaceRules || [];
       font.fontFaceRules.push(rule);
+      font.fontFamily = pickRicherFontFamilyLabel(font.fontFamily, family);
     }
   }
 }
@@ -468,8 +506,12 @@ function appendElementFontsForRange(fonts, list, start, end) {
     const families = extractFontFamilies(style.fontFamily);
 
     for (const family of families) {
-      if (!fonts.has(family)) {
-        fonts.set(family, {
+      const key = fontFamiliesMapKey(family);
+      if (!key) {
+        continue;
+      }
+      if (!fonts.has(key)) {
+        fonts.set(key, {
           fontFamily: family,
           sources: [],
           fontFaceRules: [],
@@ -478,7 +520,8 @@ function appendElementFontsForRange(fonts, list, start, end) {
         });
       }
 
-      const font = fonts.get(family);
+      const font = fonts.get(key);
+      font.fontFamily = pickRicherFontFamilyLabel(font.fontFamily, family);
       font.usedInElements = font.usedInElements || [];
       font.usageElementHits = (font.usageElementHits || 0) + 1;
       if (font.usedInElements.length < MAX_USAGE_RECORDS_PER_FAMILY) {
@@ -685,7 +728,8 @@ function analyzeFontSource(font, pageOrigin, fontsMap) {
   sources.push(...sourcesFromFontFaceRules(font.fontFaceRules, origin));
 
   if (sources.length === 0 && fontsMap && typeof fontsMap.get === 'function') {
-    const siblingKey = nextNonFallbackFontfaceSiblingKey(font.fontFamily);
+    const siblingRaw = nextNonFallbackFontfaceSiblingKey(font.fontFamily);
+    const siblingKey = siblingRaw ? fontFamiliesMapKey(siblingRaw) : '';
     if (siblingKey && fontsMap.has(siblingKey)) {
       const sibling = fontsMap.get(siblingKey);
       sources.push(...sourcesFromFontFaceRules(sibling.fontFaceRules, origin));
