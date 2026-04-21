@@ -10,6 +10,7 @@
   },
   "permissions": [
     "activeTab",
+    "tabs",
     "storage",
     "scripting",
     "<all_urls>"
@@ -35,6 +36,7 @@
   },
   "options_page": "settings/settings.html",
   "web_accessible_resources": [
-    "lib/font-detection.js"
+    "lib/font-detection.js",
+    "content.js"
   ]
 }

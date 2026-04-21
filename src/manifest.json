@@ -10,6 +10,7 @@
   },
   "permissions": [
     "activeTab",
+    "tabs",
     "storage",
     "scripting"
   ],
@@ -36,18 +37,18 @@
     },
     "theme_icons": [
       {
-        "light": "icons/icon16-light.png",
-        "dark": "icons/icon16.png",
+        "light": "icons/icon16.png",
+        "dark": "icons/icon16-light.png",
         "size": 16
       },
       {
-        "light": "icons/icon24-light.png",
-        "dark": "icons/icon24.png",
+        "light": "icons/icon24.png",
+        "dark": "icons/icon24-light.png",
         "size": 24
       },
       {
-        "light": "icons/icon32-light.png",
-        "dark": "icons/icon32.png",
+        "light": "icons/icon32.png",
+        "dark": "icons/icon32-light.png",
         "size": 32
       }
     ]
@@ -55,7 +56,7 @@
   "options_page": "settings/settings.html",
   "web_accessible_resources": [
     {
-      "resources": ["lib/font-detection.js"],
+      "resources": ["lib/font-detection.js", "content.js"],
       "matches": ["<all_urls>"]
     }
   ]

@@ -3,195 +3,636 @@
  * Handles popup UI interactions and font display
  */
 
-// DOM Elements
 const urlInput = document.getElementById('urlInput');
 const scanBtn = document.getElementById('scanBtn');
-const recentUrls = document.getElementById('recentUrls');
 const resultsSection = document.getElementById('resultsSection');
 const resultsContainer = document.getElementById('resultsContainer');
 const fontCount = document.getElementById('fontCount');
 const loadingSection = document.getElementById('loadingSection');
 const emptySection = document.getElementById('emptySection');
+const emptySectionMessage = document.getElementById('emptySectionMessage');
 const settingsBtn = document.getElementById('settingsBtn');
+const contentRoot = document.getElementById('contentRoot');
+const blankIntro = document.getElementById('blankIntro');
+const activePageBar = document.getElementById('activePageBar');
+const activePageUrl = document.getElementById('activePageUrl');
+const urlSectionHint = document.getElementById('urlSectionHint');
+const urlFeedback = document.getElementById('urlFeedback');
+const scanProgressFill = document.getElementById('scanProgressFill');
+const scanProgressLabel = document.getElementById('scanProgressLabel');
+const scanProgressMeta = document.getElementById('scanProgressMeta');
+const pageScanBtn = document.getElementById('pageScanBtn');
 
-// State
+/** @type {chrome.runtime.Port | null} */
+let fontScanProgressPort = null;
+
 let currentFonts = [];
 let currentUrl = '';
+/** Tab behind the popup; set when a normal page is active (manual scan). */
+let activeTargetTabId;
 let scanOptions = { scanRoot: false };
+/** URL template with `{query}` for the Find button (from settings). */
+let findSearchUrlTemplate = 'https://www.google.com/search?q={query}';
+/** From settings: show sample text using detected families (and remote @font-face when URLs exist). */
+let showPreview = true;
+/** @type {'page' | 'blank'} */
+let uiMode = 'blank';
 
-// Initialize
-async function init() {
-  console.log('FontSource: Popup initialized');
-  
-  // Load state
-  await loadState();
-  
-  // Set up event listeners
-  setupEventListeners();
-  
-  // Load recent URLs
-  loadRecentUrls();
-  
-  // Check if we have a current URL
-  const tabUrl = await getCurrentTabUrl();
-  if (tabUrl) {
-    currentUrl = tabUrl;
-    // Auto-scan if we have a URL
-    scanCurrentPage();
+function connectFontScanProgressPort() {
+  disconnectFontScanProgressPort();
+  try {
+    fontScanProgressPort = chrome.runtime.connect({ name: 'fontScanProgress' });
+  } catch (e) {
+    fontScanProgressPort = null;
   }
 }
 
-// Load state from background
-async function loadState() {
+function disconnectFontScanProgressPort() {
+  if (fontScanProgressPort) {
+    try {
+      fontScanProgressPort.disconnect();
+    } catch (e) {
+      /* ignore */
+    }
+    fontScanProgressPort = null;
+  }
+}
+
+function resetScanProgressUI() {
+  if (scanProgressFill) {
+    scanProgressFill.style.width = '0%';
+  }
+  if (scanProgressLabel) {
+    scanProgressLabel.textContent = 'Preparing scan…';
+  }
+  if (scanProgressMeta) {
+    scanProgressMeta.textContent = '';
+    scanProgressMeta.hidden = true;
+  }
+}
+
+function applyScanProgressPayload(payload) {
+  if (!payload) return;
+  const pct =
+    typeof payload.percent === 'number'
+      ? Math.max(0, Math.min(100, Math.round(payload.percent)))
+      : 0;
+  if (scanProgressFill) {
+    scanProgressFill.style.width = `${pct}%`;
+  }
+  if (scanProgressLabel) {
+    scanProgressLabel.textContent = payload.detail || payload.phase || '…';
+  }
+  let meta = '';
+  if (payload.phase === 'elements' && typeof payload.total === 'number') {
+    const cur = typeof payload.current === 'number' ? payload.current : 0;
+    meta = `${cur.toLocaleString()} / ${payload.total.toLocaleString()} elements`;
+    if (typeof payload.uniqueFamilies === 'number') {
+      meta += ` · ${payload.uniqueFamilies.toLocaleString()} families`;
+    }
+  } else if (payload.phase === 'analyze' && typeof payload.uniqueFamilies === 'number') {
+    meta = `${payload.uniqueFamilies.toLocaleString()} families`;
+  } else if (payload.phase === 'stylesheet' && typeof payload.uniqueFamilies === 'number') {
+    meta = `${payload.uniqueFamilies.toLocaleString()} families from @font-face`;
+  }
+  if (scanProgressMeta) {
+    scanProgressMeta.textContent = meta;
+    scanProgressMeta.hidden = !meta;
+  }
+}
+
+function sendMessage(payload) {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getState' }, (response) => {
-      if (response && response.state) {
-        scanOptions = response.state.scanOptions || { scanRoot: false };
+    chrome.runtime.sendMessage(payload, (response) => {
+      const err = chrome.runtime.lastError;
+      if (err) {
+        console.warn('FontSource popup message error:', err.message);
+        resolve(null);
+        return;
       }
-      resolve();
+      resolve(response);
     });
   });
 }
 
-// Setup event listeners
+/**
+ * Chrome manifest theme_icons are not always applied; match toolbar to OS dark mode.
+ */
+function applyToolbarIconForColorScheme() {
+  if (typeof chrome === 'undefined' || !chrome.action || !chrome.action.setIcon) {
+    return;
+  }
+  const dark =
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const paths = dark
+    ? {
+        16: 'icons/icon16-light.png',
+        24: 'icons/icon24-light.png',
+        32: 'icons/icon32-light.png',
+        48: 'icons/icon48-light.png',
+        128: 'icons/icon128-light.png'
+      }
+    : {
+        16: 'icons/icon16.png',
+        24: 'icons/icon24.png',
+        32: 'icons/icon32.png',
+        48: 'icons/icon48.png',
+        128: 'icons/icon128.png'
+      };
+  try {
+    chrome.action.setIcon({ path: paths });
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+function showPageReadyUi(tabUrl) {
+  loadingSection.style.display = 'none';
+  resultsSection.style.display = 'none';
+  emptySection.hidden = true;
+  activePageUrl.textContent = truncateUrl(tabUrl, 48);
+  activePageBar.hidden = false;
+  if (pageScanBtn) {
+    pageScanBtn.disabled = false;
+  }
+}
+
+async function init() {
+  applyToolbarIconForColorScheme();
+  try {
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', applyToolbarIconForColorScheme);
+  } catch (e) {
+    /* ignore */
+  }
+
+  await loadState();
+  setupEventListeners();
+
+  /** Tab + URL must come from the background (popup tabs.query targets the popup window). */
+  const ctx = await sendMessage({ action: 'getTabScanContext' });
+  const tabUrl = ctx && ctx.url ? ctx.url : '';
+  const scannable = !!(ctx && ctx.scannable);
+
+  currentUrl = tabUrl;
+  activeTargetTabId = typeof ctx?.tabId === 'number' ? ctx.tabId : undefined;
+
+  if (scannable) {
+    uiMode = 'page';
+    applyLayoutMode();
+    blankIntro.hidden = true;
+    urlSectionHint.textContent =
+      'Click "Scan this page" when you are ready (large sites are scanned incrementally). Or open another site below.';
+    showPageReadyUi(tabUrl);
+    if (pageScanBtn && typeof activeTargetTabId !== 'number') {
+      pageScanBtn.disabled = true;
+      urlSectionHint.textContent =
+        'Could not resolve the page tab from the extension. Close the popup, focus the site tab, and open FontSource again.';
+    }
+  } else {
+    uiMode = 'blank';
+    applyLayoutMode();
+    activePageBar.hidden = true;
+    blankIntro.hidden = false;
+    urlSectionHint.textContent =
+      'Enter a website address to open it. When the page has loaded, open FontSource and tap "Scan this page".';
+    resultsSection.style.display = 'none';
+    loadingSection.style.display = 'none';
+    emptySection.hidden = true;
+    urlInput.focus();
+  }
+}
+
+function applyLayoutMode() {
+  contentRoot.dataset.mode = uiMode;
+}
+
+async function loadState() {
+  const response = await sendMessage({ action: 'getState' });
+  if (response && response.state) {
+    scanOptions = response.state.scanOptions || { scanRoot: false };
+    showPreview = response.state.showPreview !== false;
+    const t = response.state.findSearchUrlTemplate;
+    if (typeof t === 'string' && t.includes('{query}')) {
+      findSearchUrlTemplate = t;
+    }
+  }
+}
+
 function setupEventListeners() {
-  scanBtn.addEventListener('click', () => scanUrl());
-  urlInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') scanUrl();
+  scanBtn.addEventListener('click', () => openSubmittedUrl());
+  if (pageScanBtn) {
+    pageScanBtn.addEventListener('click', async () => {
+      const ctx = await sendMessage({ action: 'getTabScanContext' });
+      if (!ctx || !ctx.scannable) {
+        showEmptyState('No scannable page found. Click the website tab, then open FontSource again.');
+        return;
+      }
+      if (typeof ctx.tabId !== 'number') {
+        showEmptyState('Could not determine which tab to scan. Try reloading the page.');
+        return;
+      }
+      activeTargetTabId = ctx.tabId;
+      currentUrl = ctx.url || currentUrl;
+      activePageUrl.textContent = truncateUrl(currentUrl, 48);
+      await scanCurrentPage(activeTargetTabId);
+    });
+  }
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      openSubmittedUrl();
+    }
   });
   settingsBtn.addEventListener('click', openSettings);
-}
 
-// Load recent URLs
-function loadRecentUrls() {
-  chrome.runtime.sendMessage({ action: 'getRecentUrls' }, (response) => {
-    if (response && response.urls) {
-      recentUrls.innerHTML = response.urls.map(url => `
-        <span class="recent-url" data-url="${escapeHtml(url)}">
-          <svg viewBox="0 0 24 24">
-            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-          </svg>
-          ${truncateUrl(url, 30)}
-        </span>
-      `).join('');
-      
-      // Add click handlers
-      document.querySelectorAll('.recent-url').forEach(el => {
-        el.addEventListener('click', () => {
-          const url = el.dataset.url;
-          urlInput.value = url;
-          scanUrl(url);
-        });
-      });
+  resultsContainer.addEventListener('click', (e) => {
+    const btn = e.target.closest('.find-font-btn');
+    if (!btn) {
+      return;
     }
+    const idx = parseInt(btn.getAttribute('data-find-index'), 10);
+    if (Number.isNaN(idx) || !currentFonts[idx]) {
+      return;
+    }
+    const font = currentFonts[idx];
+    const srcList = font.sourceInfo || [];
+    const first = srcList[0] || {};
+    void openFontFindTab(buildFontFindQuery(font, first));
   });
 }
 
-// Get current tab URL
-function getCurrentTabUrl() {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getCurrentUrl' }, (response) => {
-      resolve(response ? response.url : null);
-    });
-  });
+function setUrlFeedback(message, isError) {
+  if (!urlFeedback) return;
+  urlFeedback.textContent = message;
+  urlFeedback.hidden = !message;
+  urlFeedback.classList.toggle('url-feedback--error', !!isError);
+  if (message && !isError) {
+    window.clearTimeout(setUrlFeedback._t);
+    setUrlFeedback._t = window.setTimeout(() => {
+      urlFeedback.hidden = true;
+      urlFeedback.textContent = '';
+    }, 6000);
+  }
 }
 
-// Scan current page
-async function scanCurrentPage() {
+async function openSubmittedUrl() {
+  const raw = urlInput.value.trim();
+  if (!raw) {
+    setUrlFeedback('Enter full URL.', true);
+    return;
+  }
+
+  setUrlFeedback('');
+
+  const response = await sendMessage({ action: 'openUrl', url: raw });
+
+  if (response && response.success) {
+    setUrlFeedback(
+      'Opening… If this popup closed, click FontSource in the toolbar again after the page finishes loading.',
+      false
+    );
+  } else {
+    setUrlFeedback((response && response.error) || 'Could not open that address.', true);
+  }
+}
+
+async function scanCurrentPage(explicitTabId) {
+  if (pageScanBtn) {
+    pageScanBtn.disabled = true;
+  }
   showLoading();
-  
+  connectFontScanProgressPort();
+  if (fontScanProgressPort) {
+    fontScanProgressPort.onMessage.addListener(applyScanProgressPayload);
+  }
+
+  const tabId = explicitTabId != null ? explicitTabId : activeTargetTabId;
+
   try {
-    const response = await new Promise((resolve) => {
-      chrome.runtime.sendMessage({
-        action: 'scanPage',
-        options: scanOptions
-      }, resolve);
+    const response = await sendMessage({
+      action: 'scanPage',
+      options: scanOptions,
+      tabId
     });
-    
-    if (response && response.fonts) {
+
+    if (response && Array.isArray(response.fonts)) {
       currentFonts = response.fonts;
       currentUrl = response.url || currentUrl;
-      displayFonts(currentFonts);
+      activePageUrl.textContent = truncateUrl(currentUrl, 48);
+      activePageBar.hidden = false;
+      if (scanProgressFill) {
+        scanProgressFill.style.width = '100%';
+      }
+      if (scanProgressLabel) {
+        scanProgressLabel.textContent = 'Rendering results…';
+      }
+      await displayFonts(currentFonts);
     } else if (response && response.error) {
+      if (response.blank) {
+        uiMode = 'blank';
+        applyLayoutMode();
+        blankIntro.hidden = false;
+        activePageBar.hidden = true;
+        urlSectionHint.textContent =
+          'Enter a website address to open it. When the page has loaded, open FontSource and tap "Scan this page".';
+      }
       showEmptyState(response.error);
-    }
-  } catch (e) {
-    console.error('Scan error:', e);
-    showEmptyState('Failed to scan page. Make sure you have an active tab.');
-  }
-}
-
-// Scan URL
-async function scanUrl(url) {
-  const scanUrl = url || urlInput.value.trim();
-  
-  if (!scanUrl) {
-    showEmptyState('Please enter a URL to scan');
-    return;
-  }
-  
-  // Validate URL
-  let formattedUrl = scanUrl;
-  if (!formattedUrl.startsWith('http')) {
-    formattedUrl = 'https://' + formattedUrl;
-  }
-  
-  showLoading();
-  
-  try {
-    // Get page origin
-    const originResponse = await new Promise((resolve) => {
-      chrome.runtime.sendMessage({
-        action: 'getPageOrigin',
-        url: formattedUrl
-      }, resolve);
-    });
-    
-    const origin = originResponse.origin;
-    
-    // Get fonts from content script
-    const response = await new Promise((resolve) => {
-      chrome.runtime.sendMessage({
-        action: 'scanPage',
-        options: { ...scanOptions, url: origin }
-      }, resolve);
-    });
-    
-    if (response && response.fonts) {
-      currentFonts = response.fonts;
-      currentUrl = formattedUrl;
-      displayFonts(currentFonts);
     } else {
-      showEmptyState('No fonts found on this page');
+      showEmptyState('Failed to scan this page.');
     }
   } catch (e) {
     console.error('Scan error:', e);
-    showEmptyState('Failed to scan page. Make sure you have an active tab.');
+    showEmptyState('Failed to scan page. Try reloading the tab.');
+  } finally {
+    if (fontScanProgressPort) {
+      fontScanProgressPort.onMessage.removeListener(applyScanProgressPayload);
+    }
+    disconnectFontScanProgressPort();
+    if (pageScanBtn) {
+      pageScanBtn.disabled = false;
+    }
   }
 }
 
-// Display fonts
-function displayFonts(fonts) {
+function removePreviewFontStyles() {
+  const el = document.getElementById('fontSourcePreviewFaces');
+  if (el) {
+    el.remove();
+  }
+}
+
+function normalizePreviewFontWeight(v) {
+  const s = String(v == null ? '' : v).trim().toLowerCase();
+  if (!s || s === 'normal') {
+    return '400';
+  }
+  if (s === 'bold' || s === 'bolder') {
+    return '700';
+  }
+  if (s === 'lighter') {
+    return '300';
+  }
+  if (/^\d{2,3}$/.test(s)) {
+    const n = parseInt(s, 10);
+    if (n >= 1 && n <= 900) {
+      return String(n);
+    }
+  }
+  const n = parseInt(s, 10);
+  if (Number.isFinite(n) && n >= 1 && n <= 900) {
+    return String(n);
+  }
+  return '400';
+}
+
+function normalizePreviewFontStyle(v) {
+  const s = String(v == null ? '' : v).trim().toLowerCase();
+  return s === 'italic' || s === 'oblique' ? s : 'normal';
+}
+
+function safeCssFontSize(v) {
+  const t = String(v || '').trim();
+  return /^[\d.]+(px|pt|rem|em|%)$/i.test(t) ? t : '18px';
+}
+
+function formatHintForFontUrl(abs) {
+  const path = abs.split('?')[0].split('#')[0].toLowerCase();
+  if (path.endsWith('.woff2')) {
+    return " format('woff2')";
+  }
+  if (path.endsWith('.woff')) {
+    return " format('woff')";
+  }
+  if (path.endsWith('.ttf')) {
+    return " format('truetype')";
+  }
+  if (path.endsWith('.otf')) {
+    return " format('opentype')";
+  }
+  return '';
+}
+
+/**
+ * All file URLs inside a CSS src descriptor (may list multiple url()s / formats).
+ * @param {string} src
+ * @returns {string[]}
+ */
+function extractAllFontFileUrls(src) {
+  if (!src || typeof src !== 'string') {
+    return [];
+  }
+  const out = [];
+  const re = /url\(\s*['"]?([^'")\s]+)['"]?\s*\)/gi;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const u = m[1].trim();
+    if (u.toLowerCase().startsWith('data:')) {
+      continue;
+    }
+    if (u.endsWith('…') || u.endsWith('...')) {
+      continue;
+    }
+    out.push(u);
+  }
+  return out;
+}
+
+/**
+ * Build @font-face rules for popup preview: one synthetic family per card, multiple
+ * weight/style variants so the preview can match how the page used the font.
+ * @param {object[]} fonts
+ * @returns {{ css: string, previewHintsByIndex: { family: string|null, fontWeight: string, fontStyle: string, fontSize: string }[] }}
+ */
+function buildPreviewFontFaceCss(fonts) {
+  const previewHintsByIndex = [];
+  const chunks = [];
+  if (!Array.isArray(fonts)) {
+    return { css: '', previewHintsByIndex };
+  }
+  const maxFacesPerFont = 8;
+
+  fonts.forEach((font, idx) => {
+    const sample = font.usedInElements && font.usedInElements[0];
+    const wantW = normalizePreviewFontWeight(sample && sample.fontWeight);
+    const wantS = normalizePreviewFontStyle(sample && sample.fontStyle);
+    const fontSize = safeCssFontSize(sample && sample.fontSize);
+
+    const fam = `__FontSourcePreview_${idx}`;
+    let anyFace = false;
+    let emitted = 0;
+    const rules = font.fontFaceRules || [];
+
+    for (let i = 0; i < rules.length && emitted < maxFacesPerFont; i++) {
+      const urls = extractAllFontFileUrls(rules[i].src);
+      const rw = normalizePreviewFontWeight(rules[i].fontWeight);
+      const rs = normalizePreviewFontStyle(rules[i].fontStyle);
+      const ur = rules[i].unicodeRange ? String(rules[i].unicodeRange).trim().slice(0, 160) : '';
+
+      for (let j = 0; j < urls.length; j++) {
+        const abs = resolveFontSourceLink(urls[j], currentUrl);
+        if (!abs) {
+          continue;
+        }
+        const fmt = formatHintForFontUrl(abs);
+        const uni = ur ? `unicode-range:${ur};` : '';
+        chunks.push(
+          `@font-face{font-family:${JSON.stringify(fam)};src:url(${JSON.stringify(abs)})${fmt};font-weight:${rw};font-style:${rs};font-display:swap;${uni}}`
+        );
+        anyFace = true;
+        emitted++;
+        break;
+      }
+    }
+
+    if (emitted < maxFacesPerFont) {
+      const infos = font.sourceInfo || [];
+      for (let j = 0; j < infos.length && emitted < maxFacesPerFont; j++) {
+        const url = infos[j].url;
+        if (!url || typeof url !== 'string') {
+          continue;
+        }
+        const pathOnly = url.split('?')[0].split('#')[0];
+        if (!/\.(woff2?|ttf|otf)$/i.test(pathOnly)) {
+          continue;
+        }
+        const abs = resolveFontSourceLink(url, currentUrl);
+        if (!abs) {
+          continue;
+        }
+        const fmt = formatHintForFontUrl(abs);
+        chunks.push(
+          `@font-face{font-family:${JSON.stringify(fam)};src:url(${JSON.stringify(abs)})${fmt};font-weight:${wantW};font-style:${wantS};font-display:swap;}`
+        );
+        anyFace = true;
+        emitted++;
+        break;
+      }
+    }
+
+    previewHintsByIndex[idx] = {
+      family: anyFace ? fam : null,
+      fontWeight: wantW,
+      fontStyle: wantS,
+      fontSize
+    };
+  });
+
+  return { css: chunks.join('\n'), previewHintsByIndex };
+}
+
+/**
+ * Serialize font-family stack for use in a style attribute (quoted named families).
+ * @param {string} name
+ * @returns {string}
+ */
+function familiesForPreviewCss(name) {
+  const s = String(name || '').trim();
+  if (!s) {
+    return 'ui-sans-serif, sans-serif';
+  }
+  const generic = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-serif|ui-sans-serif|ui-monospace|emoji|math)$/i;
+  return s
+    .split(',')
+    .map((part) => {
+      const p = part.trim().replace(/^["']|["']$/g, '');
+      if (!p) {
+        return null;
+      }
+      if (generic.test(p)) {
+        return p;
+      }
+      return `'${p.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+    })
+    .filter(Boolean)
+    .join(', ');
+}
+
+async function displayFonts(fonts) {
   if (!fonts || fonts.length === 0) {
-    showEmptyState('No fonts found on this page');
+    showEmptyState('No fonts were detected on this page.');
     return;
   }
-  
+
+  await loadState();
+
   fontCount.textContent = `${fonts.length} font${fonts.length !== 1 ? 's' : ''}`;
-  
-  resultsContainer.innerHTML = fonts.map(font => createFontCard(font)).join('');
-  
+
+  removePreviewFontStyles();
+  let previewHintsByIndex = [];
+  if (showPreview) {
+    const built = buildPreviewFontFaceCss(fonts);
+    previewHintsByIndex = built.previewHintsByIndex;
+    if (built.css) {
+      const style = document.createElement('style');
+      style.id = 'fontSourcePreviewFaces';
+      style.textContent = built.css;
+      document.head.appendChild(style);
+    }
+  }
+
+  resultsContainer.innerHTML = fonts
+    .map((font, idx) => createFontCard(font, idx, previewHintsByIndex[idx]))
+    .join('');
+
   resultsSection.style.display = 'block';
-  emptySection.style.display = 'none';
+  emptySection.hidden = true;
   loadingSection.style.display = 'none';
 }
 
-// Create font card HTML
-function createFontCard(font) {
+function humanizeFamilyName(name) {
+  return String(name || '')
+    .replace(/_/g, ' ')
+    .replace(/-/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function basenameFromSourceUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+  const path = url.split('?')[0].split('#')[0];
+  const parts = path.split('/').filter(Boolean);
+  return parts.length ? parts[parts.length - 1] : '';
+}
+
+function buildFontFindQuery(font, source) {
+  const name = humanizeFamilyName(font.fontFamily);
+  const parts = [name, 'web', 'font', 'license'];
+  const bn = basenameFromSourceUrl(source.url || '');
+  if (bn && bn.includes('.')) {
+    parts.push(bn);
+  }
+  return parts.join(' ');
+}
+
+async function openFontFindTab(query) {
+  await loadState();
+  const enc = encodeURIComponent(query);
+  const tpl =
+    findSearchUrlTemplate && findSearchUrlTemplate.includes('{query}')
+      ? findSearchUrlTemplate
+      : 'https://www.google.com/search?q={query}';
+  const url = tpl.split('{query}').join(enc);
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+      return;
+    }
+    chrome.tabs.create({ url: u.href, active: true });
+  } catch (e) {
+    console.warn('FontSource: invalid find URL', e);
+  }
+}
+
+function createFontCard(font, cardIndex, previewHint) {
   const sources = font.sourceInfo || [];
   const source = sources[0] || { service: 'Custom / Self-hosted', license: 'Varies by font' };
-  
-  // Determine source type for styling
+
   let sourceType = 'custom';
   if (source.service.toLowerCase().includes('google')) {
     sourceType = 'google-fonts';
@@ -200,23 +641,45 @@ function createFontCard(font) {
   } else if (source.service.toLowerCase().includes('fonts.com')) {
     sourceType = 'fonts-com';
   }
-  
-  // Get usage info
-  const usageCount = font.usedInElements ? font.usedInElements.length : 0;
-  const usageExamples = (font.usedInElements || []).slice(0, 5).map(el => escapeHtml(el.selector)).join(', ');
-  
-  // License link
-  const licenseLink = source.licenseUrl 
-    ? `<a href="${source.licenseUrl}" target="_blank" class="license-link">View License</a>`
+
+  const sampleEls = font.usedInElements || [];
+  const usageTotal =
+    typeof font.usageElementCount === 'number' ? font.usageElementCount : sampleEls.length;
+  const usageTruncated = usageTotal > sampleEls.length;
+  const usageCount = usageTotal;
+  const usageExamples = sampleEls
+    .slice(0, 5)
+    .map((el) => escapeHtml(el.selector))
+    .join(', ');
+  const usageNote = usageTruncated
+    ? ` · ${sampleEls.length} sample selector${sampleEls.length !== 1 ? 's' : ''}`
     : '';
-  
+
+  const licenseLink = source.licenseUrl
+    ? `<a href="${source.licenseUrl}" target="_blank" rel="noopener noreferrer" class="license-link">View License</a>`
+    : '';
+
+  let previewSection = '';
+  if (showPreview && previewHint) {
+    const stack = previewHint.family
+      ? `'${previewHint.family}', ${familiesForPreviewCss(font.fontFamily)}`
+      : familiesForPreviewCss(font.fontFamily);
+    const styleAttr = `font-family:${stack};font-weight:${previewHint.fontWeight};font-style:${previewHint.fontStyle};font-size:${previewHint.fontSize};`;
+    previewSection = `<div class="font-card-preview" style="${escapeHtmlAttr(styleAttr)}">
+        <span class="font-card-preview-label">Preview</span>
+        <p class="font-card-preview-sample">The quick brown fox jumps over the lazy dog.</p>
+        <p class="font-card-preview-meta">${escapeHtml(font.fontFamily)}</p>
+      </div>`;
+  }
+
   return `
     <div class="font-card">
       <div class="font-card-header">
         <div class="font-name">${escapeHtml(font.fontFamily)}</div>
         <span class="font-source ${sourceType}">${escapeHtml(source.service)}</span>
       </div>
-      
+      ${previewSection || ''}
+
       <div class="font-details">
         <div class="detail-item">
           <span class="detail-label">Size</span>
@@ -230,19 +693,24 @@ function createFontCard(font) {
           <span class="detail-label">Style</span>
           <span class="detail-value">${font.usedInElements && font.usedInElements[0] ? font.usedInElements[0].fontStyle : 'N/A'}</span>
         </div>
-        <div class="detail-item">
-          <span class="detail-label">Source</span>
-          <span class="detail-value">${source.url ? escapeHtml(source.url) : 'Embedded'}</span>
+        <div class="detail-item detail-item--full">
+          <div class="detail-source-header">
+            <span class="detail-label">Source</span>
+            <button type="button" class="find-font-btn" data-find-index="${cardIndex}" title="Search the web for this font (uses your Settings search URL)">Find</button>
+          </div>
+          <div class="detail-source-body">
+            ${renderFontSourceUrl(source.url)}
+          </div>
         </div>
       </div>
-      
+
       <div class="font-usage">
-        <span class="usage-label">Used In (${usageCount} elements)</span>
+        <span class="usage-label">Used in (${usageCount} elements${usageNote})</span>
         <div class="usage-list">
-          ${usageExamples ? usageExamples.split(', ').map(el => `<span class="usage-item">${el}</span>`).join('') : '<span class="usage-item">N/A</span>'}
+          ${usageExamples ? usageExamples.split(', ').map((el) => `<span class="usage-item">${el}</span>`).join('') : '<span class="usage-item">N/A</span>'}
         </div>
       </div>
-      
+
       <div class="font-license">
         <span class="license-label">License</span>
         <div class="license-text">${escapeHtml(source.license)} ${licenseLink ? `| ${licenseLink}` : ''}</div>
@@ -251,27 +719,26 @@ function createFontCard(font) {
   `;
 }
 
-// Show loading state
 function showLoading() {
+  removePreviewFontStyles();
   resultsSection.style.display = 'none';
-  emptySection.style.display = 'none';
+  emptySection.hidden = true;
   loadingSection.style.display = 'flex';
+  resetScanProgressUI();
 }
 
-// Show empty state
 function showEmptyState(message) {
+  removePreviewFontStyles();
   resultsSection.style.display = 'none';
   loadingSection.style.display = 'none';
-  emptySection.style.display = 'flex';
-  emptySection.querySelector('p').textContent = message;
+  emptySection.hidden = false;
+  emptySectionMessage.textContent = message;
 }
 
-// Open settings
 function openSettings() {
   chrome.runtime.openOptionsPage();
 }
 
-// Escape HTML
 function escapeHtml(text) {
   if (!text) return '';
   const div = document.createElement('div');
@@ -279,11 +746,66 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Truncate URL
+function escapeHtmlAttr(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;');
+}
+
+/**
+ * Build an https? URL for opening in a new tab (resolves site-relative paths against the scanned page).
+ * @param {string} rawUrl
+ * @param {string} pageUrl
+ * @returns {string|null}
+ */
+function resolveFontSourceLink(rawUrl, pageUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    return null;
+  }
+  const s = rawUrl.trim();
+  if (!s) {
+    return null;
+  }
+  try {
+    let abs;
+    if (/^https?:\/\//i.test(s)) {
+      abs = new URL(s).href;
+    } else if (/^\/\//.test(s)) {
+      abs = new URL(`https:${s}`).href;
+    } else {
+      const base = pageUrl && /^https?:\/\//i.test(pageUrl) ? pageUrl : '';
+      if (!base) {
+        return null;
+      }
+      abs = new URL(s, base).href;
+    }
+    const u = new URL(abs);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+      return null;
+    }
+    return u.href;
+  } catch {
+    return null;
+  }
+}
+
+function renderFontSourceUrl(rawUrl) {
+  if (!rawUrl) {
+    return '<span class="detail-value">No file URL</span>';
+  }
+  const href = resolveFontSourceLink(rawUrl, currentUrl);
+  const label = escapeHtml(rawUrl);
+  if (!href) {
+    return `<span class="detail-value detail-value--plain">${label}</span>`;
+  }
+  return `<a class="detail-value detail-value--link" href="${escapeHtmlAttr(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+}
+
 function truncateUrl(url, maxLength) {
-  if (url.length <= maxLength) return url;
+  if (!url || url.length <= maxLength) return url || '';
   return url.substring(0, maxLength - 3) + '...';
 }
 
-// Initialize on load
 document.addEventListener('DOMContentLoaded', init);

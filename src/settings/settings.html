@@ -39,6 +39,31 @@
         </div>
       </section>
 
+      <!-- Web search for fonts -->
+      <section class="settings-section">
+        <h2>Font web search</h2>
+        <div class="setting-item">
+          <div class="setting-label">
+            <span>Search engine</span>
+            <span class="setting-description">Used by the Find button next to each font source in the popup. The URL must include <code>{query}</code> where the search terms go.</span>
+          </div>
+          <div class="setting-control setting-control--stack">
+            <label class="select-label" for="findSearchPreset">Preset</label>
+            <select id="findSearchPreset" class="setting-select">
+              <option value="google">Google</option>
+              <option value="duckduckgo">DuckDuckGo</option>
+              <option value="bing">Bing</option>
+              <option value="ecosia">Ecosia</option>
+              <option value="perplexity">Perplexity</option>
+              <option value="kagi">Kagi</option>
+              <option value="custom">Custom URL…</option>
+            </select>
+            <label class="select-label" for="findSearchTemplate">Search URL template</label>
+            <input type="text" id="findSearchTemplate" class="setting-text-input" spellcheck="false" autocomplete="off" placeholder="https://www.google.com/search?q={query}">
+          </div>
+        </div>
+      </section>
+
       <!-- Display Options -->
       <section class="settings-section">
         <h2>Display Options</h2>

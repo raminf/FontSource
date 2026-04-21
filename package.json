@@ -12,7 +12,8 @@
     "test": "echo \"No tests yet\"",
     "package:chrome": "make package-chrome",
     "package:firefox": "make package-firefox",
-    "package:safari": "make package-safari"
+    "package:safari": "make package-safari",
+    "bundle": "make bundle"
   },
   "keywords": [
     "font",

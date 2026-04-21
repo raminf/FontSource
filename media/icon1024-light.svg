@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- White artwork for dark browser chrome; geometry matches icon1024.svg -->
+<svg id="a" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 198.42 198.42">
+  <path fill="#ffffff" d="M162.3,21.7c-2.49,0-4.5-2.01-4.5-4.5s2.01-4.5,4.5-4.5h18c2.49,0,4.5,2.01,4.5,4.5v18c0,2.49-2.01,4.5-4.5,4.5s-4.5-2.01-4.5-4.5v-7.14l-13.32,13.32c-1.76,1.76-4.61,1.76-6.36,0s-1.76-4.61,0-6.36l13.32-13.32h-7.14Z"/>
+  <path fill="#ffffff" d="M41.5,155.99c1.76,1.76,1.76,4.61,0,6.36l-13.32,13.32h7.14c2.49,0,4.5,2.01,4.5,4.5s-2.01,4.5-4.5,4.5h-18c-2.49,0-4.5-2.01-4.5-4.5v-18c0-2.49,2.01-4.5,4.5-4.5s4.5,2.01,4.5,4.5v7.14l13.32-13.32c1.76-1.76,4.61-1.76,6.36,0Z"/>
+  <path fill="#ffffff" d="M35.4,21.78c2.49,0,4.5-2.01,4.5-4.5s-2.01-4.5-4.5-4.5h-18c-2.49,0-4.5,2.01-4.5,4.5v18c0,2.49,2.01,4.5,4.5,4.5s4.5-2.01,4.5-4.5v-7.14l13.32,13.32c1.76,1.76,4.61,1.76,6.36,0s1.76-4.61,0-6.36l-13.32-13.32h7.14Z"/>
+  <text transform="translate(75.15 125.07)" style="fill: #ffffff; font-family: TimesNewRomanPS-BoldItalicMT, &apos;Times New Roman&apos;; font-size: 130.09px; font-style: italic; font-weight: 700;"><tspan x="0" y="0">f</tspan></text>
+  <path fill="#ffffff" d="M156.16,156.03c-1.76,1.76-1.76,4.61,0,6.36l13.32,13.32h-7.14c-2.49,0-4.5,2.01-4.5,4.5s2.01,4.5,4.5,4.5h18c2.49,0,4.5-2.01,4.5-4.5v-18c0-2.49-2.01-4.5-4.5-4.5s-4.5,2.01-4.5,4.5v7.14l-13.32-13.32c-1.76-1.76-4.61-1.76-6.36,0Z"/>
+  <rect x="2.5" y="2.5" width="193.42" height="193.42" rx="14.31" ry="14.31" style="fill: none; stroke: #ffffff; stroke-miterlimit: 10; stroke-width: 5px;"/>
+</svg>

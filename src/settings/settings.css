@@ -1,7 +1,7 @@
 /* FontSource Settings Styles */
 :root {
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
+  --primary-color: #ea580c;
+  --primary-hover: #c2410c;
   --secondary-color: #64748b;
   --background-color: #f8fafc;
   --surface-color: #ffffff;
@@ -191,6 +191,44 @@ body {
 
 .toggle-label input[type="checkbox"]:checked + .toggle-slider::before {
   transform: translateX(20px);
+}
+
+.setting-control--stack {
+  gap: 10px;
+}
+
+.select-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.setting-select,
+.setting-text-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: var(--surface-color);
+  color: var(--text-primary);
+}
+
+.setting-select:focus,
+.setting-text-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
+}
+
+.setting-description code {
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--background-color);
+  color: var(--text-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 /* About Info */
