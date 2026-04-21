@@ -13,12 +13,15 @@ function readJson(rel) {
 }
 
 describe('Source manifests', () => {
+  const webMatches = ['http://*/*', 'https://*/*'];
+
   it('Chrome MV3 manifest has required fields', () => {
     const m = readJson('manifest.json');
     expect(m.manifest_version).toBe(3);
     expect(m.name).toBeTruthy();
     expect(m.version).toMatch(/^\d+\.\d+\.\d+/);
     expect(m.background?.service_worker).toBe('background.js');
+    expect(m.host_permissions).toEqual(webMatches);
   });
 
   it('Firefox manifest is MV2 with required fields', () => {
@@ -26,7 +29,17 @@ describe('Source manifests', () => {
     expect(m.manifest_version).toBe(2);
     expect(m.name).toBeTruthy();
     expect(m.version).toMatch(/^\d+\.\d+\.\d+/);
-    expect(m.background?.scripts).toBeTruthy();
+    expect(Array.isArray(m.background?.scripts)).toBe(true);
+    expect(m.background.scripts[0]).toBe('lib/font-face-remote.js');
+    expect(m.background.scripts).toContain('background.js');
+    expect(m.background?.service_worker).toBeUndefined();
+    expect(m.browser_specific_settings?.gecko?.id).toMatch(/@/);
+    const perms = Array.isArray(m.permissions) ? m.permissions : [];
+    expect(perms.includes('windows')).toBe(false);
+    expect(perms.includes('tabs')).toBe(false);
+    /* MV2 build uses tabs.executeScript, not chrome.scripting — avoid extra permission surface. */
+    expect(perms.includes('scripting')).toBe(false);
+    expect(perms.filter((p) => p.startsWith('http'))).toEqual(webMatches);
   });
 
   it('Safari manifest is MV3 with required fields', () => {
@@ -34,5 +47,6 @@ describe('Source manifests', () => {
     expect(m.manifest_version).toBe(3);
     expect(m.name).toBeTruthy();
     expect(m.version).toMatch(/^\d+\.\d+\.\d+/);
+    expect(m.host_permissions).toEqual(webMatches);
   });
 });

@@ -7,80 +7,80 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		FF743C7F2F97FD72000BB063 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF743C7E2F97FD72000BB063 /* AppDelegate.swift */; };
-		FF743C812F97FD72000BB063 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF743C802F97FD72000BB063 /* SceneDelegate.swift */; };
-		FF743C842F97FD72000BB063 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF743C822F97FD72000BB063 /* LaunchScreen.storyboard */; };
-		FF743C872F97FD72000BB063 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF743C852F97FD72000BB063 /* Main.storyboard */; };
-		FF743C902F97FD72000BB063 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF743C8F2F97FD72000BB063 /* AppDelegate.swift */; };
-		FF743C932F97FD72000BB063 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF743C912F97FD72000BB063 /* Main.storyboard */; };
-		FF743C9A2F97FD72000BB063 /* FontSource Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FF743C992F97FD72000BB063 /* FontSource Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		FF743CA42F97FD72000BB063 /* FontSource Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FF743CA32F97FD72000BB063 /* FontSource Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		FF743CA92F97FD72000BB063 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = FF743C6E2F97FD71000BB063 /* Main.html */; };
-		FF743CAA2F97FD72000BB063 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = FF743C6E2F97FD71000BB063 /* Main.html */; };
-		FF743CAB2F97FD72000BB063 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = FF743C702F97FD71000BB063 /* Icon.png */; };
-		FF743CAC2F97FD72000BB063 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = FF743C702F97FD71000BB063 /* Icon.png */; };
-		FF743CAD2F97FD72000BB063 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = FF743C712F97FD71000BB063 /* Style.css */; };
-		FF743CAE2F97FD72000BB063 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = FF743C712F97FD71000BB063 /* Style.css */; };
-		FF743CAF2F97FD72000BB063 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = FF743C722F97FD71000BB063 /* Script.js */; };
-		FF743CB02F97FD72000BB063 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = FF743C722F97FD71000BB063 /* Script.js */; };
-		FF743CB12F97FD72000BB063 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF743C732F97FD71000BB063 /* ViewController.swift */; };
-		FF743CB22F97FD72000BB063 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF743C732F97FD71000BB063 /* ViewController.swift */; };
-		FF743CB32F97FD72000BB063 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF743C742F97FD72000BB063 /* Assets.xcassets */; };
-		FF743CB42F97FD72000BB063 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF743C742F97FD72000BB063 /* Assets.xcassets */; };
-		FF743CB52F97FD72000BB063 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF743C762F97FD72000BB063 /* SafariWebExtensionHandler.swift */; };
-		FF743CB62F97FD72000BB063 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF743C762F97FD72000BB063 /* SafariWebExtensionHandler.swift */; };
-		FF743CCF2F97FD72000BB063 /* settings in Resources */ = {isa = PBXBuildFile; fileRef = FF743CC82F97FD72000BB063 /* settings */; };
-		FF743CD02F97FD72000BB063 /* popup in Resources */ = {isa = PBXBuildFile; fileRef = FF743CC92F97FD72000BB063 /* popup */; };
-		FF743CD12F97FD72000BB063 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCA2F97FD72000BB063 /* background.js */; };
-		FF743CD22F97FD72000BB063 /* icons in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCB2F97FD72000BB063 /* icons */; };
-		FF743CD32F97FD72000BB063 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCC2F97FD72000BB063 /* manifest.json */; };
-		FF743CD42F97FD72000BB063 /* lib in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCD2F97FD72000BB063 /* lib */; };
-		FF743CD52F97FD72000BB063 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCE2F97FD72000BB063 /* content.js */; };
-		FF743CD62F97FD72000BB063 /* settings in Resources */ = {isa = PBXBuildFile; fileRef = FF743CC82F97FD72000BB063 /* settings */; };
-		FF743CD72F97FD72000BB063 /* popup in Resources */ = {isa = PBXBuildFile; fileRef = FF743CC92F97FD72000BB063 /* popup */; };
-		FF743CD82F97FD72000BB063 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCA2F97FD72000BB063 /* background.js */; };
-		FF743CD92F97FD72000BB063 /* icons in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCB2F97FD72000BB063 /* icons */; };
-		FF743CDA2F97FD72000BB063 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCC2F97FD72000BB063 /* manifest.json */; };
-		FF743CDB2F97FD72000BB063 /* lib in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCD2F97FD72000BB063 /* lib */; };
-		FF743CDC2F97FD72000BB063 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = FF743CCE2F97FD72000BB063 /* content.js */; };
+		FF1001072F981A9800CBFFFE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1001062F981A9800CBFFFE /* AppDelegate.swift */; };
+		FF1001092F981A9800CBFFFE /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1001082F981A9800CBFFFE /* SceneDelegate.swift */; };
+		FF10010C2F981A9800CBFFFE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF10010A2F981A9800CBFFFE /* LaunchScreen.storyboard */; };
+		FF10010F2F981A9800CBFFFE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF10010D2F981A9800CBFFFE /* Main.storyboard */; };
+		FF1001182F981A9800CBFFFE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1001172F981A9800CBFFFE /* AppDelegate.swift */; };
+		FF10011B2F981A9800CBFFFE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF1001192F981A9800CBFFFE /* Main.storyboard */; };
+		FF1001222F981A9800CBFFFE /* FontSource Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FF1001212F981A9800CBFFFE /* FontSource Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FF10012C2F981A9800CBFFFE /* FontSource Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FF10012B2F981A9800CBFFFE /* FontSource Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FF1001312F981A9800CBFFFE /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = FF1000F62F981A9600CBFFFE /* Main.html */; };
+		FF1001322F981A9800CBFFFE /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = FF1000F62F981A9600CBFFFE /* Main.html */; };
+		FF1001332F981A9800CBFFFE /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = FF1000F82F981A9600CBFFFE /* Icon.png */; };
+		FF1001342F981A9800CBFFFE /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = FF1000F82F981A9600CBFFFE /* Icon.png */; };
+		FF1001352F981A9800CBFFFE /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = FF1000F92F981A9600CBFFFE /* Style.css */; };
+		FF1001362F981A9800CBFFFE /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = FF1000F92F981A9600CBFFFE /* Style.css */; };
+		FF1001372F981A9800CBFFFE /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = FF1000FA2F981A9600CBFFFE /* Script.js */; };
+		FF1001382F981A9800CBFFFE /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = FF1000FA2F981A9600CBFFFE /* Script.js */; };
+		FF1001392F981A9800CBFFFE /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1000FB2F981A9600CBFFFE /* ViewController.swift */; };
+		FF10013A2F981A9800CBFFFE /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1000FB2F981A9600CBFFFE /* ViewController.swift */; };
+		FF10013B2F981A9800CBFFFE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF1000FC2F981A9800CBFFFE /* Assets.xcassets */; };
+		FF10013C2F981A9800CBFFFE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF1000FC2F981A9800CBFFFE /* Assets.xcassets */; };
+		FF10013D2F981A9800CBFFFE /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1000FE2F981A9800CBFFFE /* SafariWebExtensionHandler.swift */; };
+		FF10013E2F981A9800CBFFFE /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1000FE2F981A9800CBFFFE /* SafariWebExtensionHandler.swift */; };
+		FF1001572F981A9800CBFFFE /* settings in Resources */ = {isa = PBXBuildFile; fileRef = FF1001502F981A9800CBFFFE /* settings */; };
+		FF1001582F981A9800CBFFFE /* popup in Resources */ = {isa = PBXBuildFile; fileRef = FF1001512F981A9800CBFFFE /* popup */; };
+		FF1001592F981A9800CBFFFE /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = FF1001522F981A9800CBFFFE /* background.js */; };
+		FF10015A2F981A9800CBFFFE /* icons in Resources */ = {isa = PBXBuildFile; fileRef = FF1001532F981A9800CBFFFE /* icons */; };
+		FF10015B2F981A9800CBFFFE /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = FF1001542F981A9800CBFFFE /* manifest.json */; };
+		FF10015C2F981A9800CBFFFE /* lib in Resources */ = {isa = PBXBuildFile; fileRef = FF1001552F981A9800CBFFFE /* lib */; };
+		FF10015D2F981A9800CBFFFE /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = FF1001562F981A9800CBFFFE /* content.js */; };
+		FF10015E2F981A9800CBFFFE /* settings in Resources */ = {isa = PBXBuildFile; fileRef = FF1001502F981A9800CBFFFE /* settings */; };
+		FF10015F2F981A9800CBFFFE /* popup in Resources */ = {isa = PBXBuildFile; fileRef = FF1001512F981A9800CBFFFE /* popup */; };
+		FF1001602F981A9800CBFFFE /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = FF1001522F981A9800CBFFFE /* background.js */; };
+		FF1001612F981A9800CBFFFE /* icons in Resources */ = {isa = PBXBuildFile; fileRef = FF1001532F981A9800CBFFFE /* icons */; };
+		FF1001622F981A9800CBFFFE /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = FF1001542F981A9800CBFFFE /* manifest.json */; };
+		FF1001632F981A9800CBFFFE /* lib in Resources */ = {isa = PBXBuildFile; fileRef = FF1001552F981A9800CBFFFE /* lib */; };
+		FF1001642F981A9800CBFFFE /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = FF1001562F981A9800CBFFFE /* content.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		FF743C9B2F97FD72000BB063 /* PBXContainerItemProxy */ = {
+		FF1001232F981A9800CBFFFE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = FF743C682F97FD71000BB063 /* Project object */;
+			containerPortal = FF1000F02F981A9600CBFFFE /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = FF743C982F97FD72000BB063;
+			remoteGlobalIDString = FF1001202F981A9800CBFFFE;
 			remoteInfo = "FontSource Extension (iOS)";
 		};
-		FF743CA52F97FD72000BB063 /* PBXContainerItemProxy */ = {
+		FF10012D2F981A9800CBFFFE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = FF743C682F97FD71000BB063 /* Project object */;
+			containerPortal = FF1000F02F981A9600CBFFFE /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = FF743CA22F97FD72000BB063;
+			remoteGlobalIDString = FF10012A2F981A9800CBFFFE;
 			remoteInfo = "FontSource Extension (macOS)";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		FF743CBC2F97FD72000BB063 /* Embed Foundation Extensions */ = {
+		FF1001442F981A9800CBFFFE /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				FF743C9A2F97FD72000BB063 /* FontSource Extension.appex in Embed Foundation Extensions */,
+				FF1001222F981A9800CBFFFE /* FontSource Extension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743CC32F97FD72000BB063 /* Embed Foundation Extensions */ = {
+		FF10014B2F981A9800CBFFFE /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				FF743CA42F97FD72000BB063 /* FontSource Extension.appex in Embed Foundation Extensions */,
+				FF10012C2F981A9800CBFFFE /* FontSource Extension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -88,59 +88,59 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		FF743C6F2F97FD71000BB063 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
-		FF743C702F97FD71000BB063 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
-		FF743C712F97FD71000BB063 /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
-		FF743C722F97FD71000BB063 /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
-		FF743C732F97FD71000BB063 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		FF743C742F97FD72000BB063 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		FF743C762F97FD72000BB063 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
-		FF743C7B2F97FD72000BB063 /* FontSource.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FontSource.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF743C7E2F97FD72000BB063 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		FF743C802F97FD72000BB063 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		FF743C832F97FD72000BB063 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		FF743C862F97FD72000BB063 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		FF743C882F97FD72000BB063 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FF743C8D2F97FD72000BB063 /* FontSource.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FontSource.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF743C8F2F97FD72000BB063 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		FF743C922F97FD72000BB063 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		FF743C942F97FD72000BB063 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FF743C992F97FD72000BB063 /* FontSource Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "FontSource Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF743C9E2F97FD72000BB063 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FF743CA32F97FD72000BB063 /* FontSource Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "FontSource Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF743CA82F97FD72000BB063 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FF743CC82F97FD72000BB063 /* settings */ = {isa = PBXFileReference; lastKnownFileType = folder; name = settings; path = Resources/settings; sourceTree = "<group>"; };
-		FF743CC92F97FD72000BB063 /* popup */ = {isa = PBXFileReference; lastKnownFileType = folder; name = popup; path = Resources/popup; sourceTree = "<group>"; };
-		FF743CCA2F97FD72000BB063 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = Resources/background.js; sourceTree = "<group>"; };
-		FF743CCB2F97FD72000BB063 /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = Resources/icons; sourceTree = "<group>"; };
-		FF743CCC2F97FD72000BB063 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = Resources/manifest.json; sourceTree = "<group>"; };
-		FF743CCD2F97FD72000BB063 /* lib */ = {isa = PBXFileReference; lastKnownFileType = folder; name = lib; path = Resources/lib; sourceTree = "<group>"; };
-		FF743CCE2F97FD72000BB063 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
+		FF1000F72F981A9600CBFFFE /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		FF1000F82F981A9600CBFFFE /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		FF1000F92F981A9600CBFFFE /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		FF1000FA2F981A9600CBFFFE /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		FF1000FB2F981A9600CBFFFE /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		FF1000FC2F981A9800CBFFFE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FF1000FE2F981A9800CBFFFE /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		FF1001032F981A9800CBFFFE /* FontSource.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FontSource.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF1001062F981A9800CBFFFE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		FF1001082F981A9800CBFFFE /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		FF10010B2F981A9800CBFFFE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		FF10010E2F981A9800CBFFFE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		FF1001102F981A9800CBFFFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FF1001152F981A9800CBFFFE /* FontSource.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FontSource.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF1001172F981A9800CBFFFE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		FF10011A2F981A9800CBFFFE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		FF10011C2F981A9800CBFFFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FF1001212F981A9800CBFFFE /* FontSource Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "FontSource Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF1001262F981A9800CBFFFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FF10012B2F981A9800CBFFFE /* FontSource Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "FontSource Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF1001302F981A9800CBFFFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FF1001502F981A9800CBFFFE /* settings */ = {isa = PBXFileReference; lastKnownFileType = folder; name = settings; path = Resources/settings; sourceTree = "<group>"; };
+		FF1001512F981A9800CBFFFE /* popup */ = {isa = PBXFileReference; lastKnownFileType = folder; name = popup; path = Resources/popup; sourceTree = "<group>"; };
+		FF1001522F981A9800CBFFFE /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = Resources/background.js; sourceTree = "<group>"; };
+		FF1001532F981A9800CBFFFE /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = Resources/icons; sourceTree = "<group>"; };
+		FF1001542F981A9800CBFFFE /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = Resources/manifest.json; sourceTree = "<group>"; };
+		FF1001552F981A9800CBFFFE /* lib */ = {isa = PBXFileReference; lastKnownFileType = folder; name = lib; path = Resources/lib; sourceTree = "<group>"; };
+		FF1001562F981A9800CBFFFE /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		FF743C782F97FD72000BB063 /* Frameworks */ = {
+		FF1001002F981A9800CBFFFE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743C8A2F97FD72000BB063 /* Frameworks */ = {
+		FF1001122F981A9800CBFFFE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743C962F97FD72000BB063 /* Frameworks */ = {
+		FF10011E2F981A9800CBFFFE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743CA02F97FD72000BB063 /* Frameworks */ = {
+		FF1001282F981A9800CBFFFE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -150,108 +150,108 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		FF743C672F97FD71000BB063 = {
+		FF1000EF2F981A9600CBFFFE = {
 			isa = PBXGroup;
 			children = (
-				FF743C6C2F97FD71000BB063 /* Shared (App) */,
-				FF743C752F97FD72000BB063 /* Shared (Extension) */,
-				FF743C7D2F97FD72000BB063 /* iOS (App) */,
-				FF743C8E2F97FD72000BB063 /* macOS (App) */,
-				FF743C9D2F97FD72000BB063 /* iOS (Extension) */,
-				FF743CA72F97FD72000BB063 /* macOS (Extension) */,
-				FF743C7C2F97FD72000BB063 /* Products */,
+				FF1000F42F981A9600CBFFFE /* Shared (App) */,
+				FF1000FD2F981A9800CBFFFE /* Shared (Extension) */,
+				FF1001052F981A9800CBFFFE /* iOS (App) */,
+				FF1001162F981A9800CBFFFE /* macOS (App) */,
+				FF1001252F981A9800CBFFFE /* iOS (Extension) */,
+				FF10012F2F981A9800CBFFFE /* macOS (Extension) */,
+				FF1001042F981A9800CBFFFE /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		FF743C6C2F97FD71000BB063 /* Shared (App) */ = {
+		FF1000F42F981A9600CBFFFE /* Shared (App) */ = {
 			isa = PBXGroup;
 			children = (
-				FF743C732F97FD71000BB063 /* ViewController.swift */,
-				FF743C742F97FD72000BB063 /* Assets.xcassets */,
-				FF743C6D2F97FD71000BB063 /* Resources */,
+				FF1000FB2F981A9600CBFFFE /* ViewController.swift */,
+				FF1000FC2F981A9800CBFFFE /* Assets.xcassets */,
+				FF1000F52F981A9600CBFFFE /* Resources */,
 			);
 			path = "Shared (App)";
 			sourceTree = "<group>";
 		};
-		FF743C6D2F97FD71000BB063 /* Resources */ = {
+		FF1000F52F981A9600CBFFFE /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				FF743C6E2F97FD71000BB063 /* Main.html */,
-				FF743C702F97FD71000BB063 /* Icon.png */,
-				FF743C712F97FD71000BB063 /* Style.css */,
-				FF743C722F97FD71000BB063 /* Script.js */,
+				FF1000F62F981A9600CBFFFE /* Main.html */,
+				FF1000F82F981A9600CBFFFE /* Icon.png */,
+				FF1000F92F981A9600CBFFFE /* Style.css */,
+				FF1000FA2F981A9600CBFFFE /* Script.js */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		FF743C752F97FD72000BB063 /* Shared (Extension) */ = {
+		FF1000FD2F981A9800CBFFFE /* Shared (Extension) */ = {
 			isa = PBXGroup;
 			children = (
-				FF743CC72F97FD72000BB063 /* Resources */,
-				FF743C762F97FD72000BB063 /* SafariWebExtensionHandler.swift */,
+				FF10014F2F981A9800CBFFFE /* Resources */,
+				FF1000FE2F981A9800CBFFFE /* SafariWebExtensionHandler.swift */,
 			);
 			path = "Shared (Extension)";
 			sourceTree = "<group>";
 		};
-		FF743C7C2F97FD72000BB063 /* Products */ = {
+		FF1001042F981A9800CBFFFE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				FF743C7B2F97FD72000BB063 /* FontSource.app */,
-				FF743C8D2F97FD72000BB063 /* FontSource.app */,
-				FF743C992F97FD72000BB063 /* FontSource Extension.appex */,
-				FF743CA32F97FD72000BB063 /* FontSource Extension.appex */,
+				FF1001032F981A9800CBFFFE /* FontSource.app */,
+				FF1001152F981A9800CBFFFE /* FontSource.app */,
+				FF1001212F981A9800CBFFFE /* FontSource Extension.appex */,
+				FF10012B2F981A9800CBFFFE /* FontSource Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		FF743C7D2F97FD72000BB063 /* iOS (App) */ = {
+		FF1001052F981A9800CBFFFE /* iOS (App) */ = {
 			isa = PBXGroup;
 			children = (
-				FF743C7E2F97FD72000BB063 /* AppDelegate.swift */,
-				FF743C802F97FD72000BB063 /* SceneDelegate.swift */,
-				FF743C822F97FD72000BB063 /* LaunchScreen.storyboard */,
-				FF743C852F97FD72000BB063 /* Main.storyboard */,
-				FF743C882F97FD72000BB063 /* Info.plist */,
+				FF1001062F981A9800CBFFFE /* AppDelegate.swift */,
+				FF1001082F981A9800CBFFFE /* SceneDelegate.swift */,
+				FF10010A2F981A9800CBFFFE /* LaunchScreen.storyboard */,
+				FF10010D2F981A9800CBFFFE /* Main.storyboard */,
+				FF1001102F981A9800CBFFFE /* Info.plist */,
 			);
 			path = "iOS (App)";
 			sourceTree = "<group>";
 		};
-		FF743C8E2F97FD72000BB063 /* macOS (App) */ = {
+		FF1001162F981A9800CBFFFE /* macOS (App) */ = {
 			isa = PBXGroup;
 			children = (
-				FF743C8F2F97FD72000BB063 /* AppDelegate.swift */,
-				FF743C912F97FD72000BB063 /* Main.storyboard */,
-				FF743C942F97FD72000BB063 /* Info.plist */,
+				FF1001172F981A9800CBFFFE /* AppDelegate.swift */,
+				FF1001192F981A9800CBFFFE /* Main.storyboard */,
+				FF10011C2F981A9800CBFFFE /* Info.plist */,
 			);
 			path = "macOS (App)";
 			sourceTree = "<group>";
 		};
-		FF743C9D2F97FD72000BB063 /* iOS (Extension) */ = {
+		FF1001252F981A9800CBFFFE /* iOS (Extension) */ = {
 			isa = PBXGroup;
 			children = (
-				FF743C9E2F97FD72000BB063 /* Info.plist */,
+				FF1001262F981A9800CBFFFE /* Info.plist */,
 			);
 			path = "iOS (Extension)";
 			sourceTree = "<group>";
 		};
-		FF743CA72F97FD72000BB063 /* macOS (Extension) */ = {
+		FF10012F2F981A9800CBFFFE /* macOS (Extension) */ = {
 			isa = PBXGroup;
 			children = (
-				FF743CA82F97FD72000BB063 /* Info.plist */,
+				FF1001302F981A9800CBFFFE /* Info.plist */,
 			);
 			path = "macOS (Extension)";
 			sourceTree = "<group>";
 		};
-		FF743CC72F97FD72000BB063 /* Resources */ = {
+		FF10014F2F981A9800CBFFFE /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				FF743CC82F97FD72000BB063 /* settings */,
-				FF743CC92F97FD72000BB063 /* popup */,
-				FF743CCA2F97FD72000BB063 /* background.js */,
-				FF743CCB2F97FD72000BB063 /* icons */,
-				FF743CCC2F97FD72000BB063 /* manifest.json */,
-				FF743CCD2F97FD72000BB063 /* lib */,
-				FF743CCE2F97FD72000BB063 /* content.js */,
+				FF1001502F981A9800CBFFFE /* settings */,
+				FF1001512F981A9800CBFFFE /* popup */,
+				FF1001522F981A9800CBFFFE /* background.js */,
+				FF1001532F981A9800CBFFFE /* icons */,
+				FF1001542F981A9800CBFFFE /* manifest.json */,
+				FF1001552F981A9800CBFFFE /* lib */,
+				FF1001562F981A9800CBFFFE /* content.js */,
 			);
 			name = Resources;
 			path = "Shared (Extension)";
@@ -260,55 +260,55 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		FF743C7A2F97FD72000BB063 /* FontSource (iOS) */ = {
+		FF1001022F981A9800CBFFFE /* FontSource (iOS) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = FF743CBD2F97FD72000BB063 /* Build configuration list for PBXNativeTarget "FontSource (iOS)" */;
+			buildConfigurationList = FF1001452F981A9800CBFFFE /* Build configuration list for PBXNativeTarget "FontSource (iOS)" */;
 			buildPhases = (
-				FF743C772F97FD72000BB063 /* Sources */,
-				FF743C782F97FD72000BB063 /* Frameworks */,
-				FF743C792F97FD72000BB063 /* Resources */,
-				FF743CBC2F97FD72000BB063 /* Embed Foundation Extensions */,
+				FF1000FF2F981A9800CBFFFE /* Sources */,
+				FF1001002F981A9800CBFFFE /* Frameworks */,
+				FF1001012F981A9800CBFFFE /* Resources */,
+				FF1001442F981A9800CBFFFE /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				FF743C9C2F97FD72000BB063 /* PBXTargetDependency */,
+				FF1001242F981A9800CBFFFE /* PBXTargetDependency */,
 			);
 			name = "FontSource (iOS)";
 			packageProductDependencies = (
 			);
 			productName = "FontSource (iOS)";
-			productReference = FF743C7B2F97FD72000BB063 /* FontSource.app */;
+			productReference = FF1001032F981A9800CBFFFE /* FontSource.app */;
 			productType = "com.apple.product-type.application";
 		};
-		FF743C8C2F97FD72000BB063 /* FontSource (macOS) */ = {
+		FF1001142F981A9800CBFFFE /* FontSource (macOS) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = FF743CC42F97FD72000BB063 /* Build configuration list for PBXNativeTarget "FontSource (macOS)" */;
+			buildConfigurationList = FF10014C2F981A9800CBFFFE /* Build configuration list for PBXNativeTarget "FontSource (macOS)" */;
 			buildPhases = (
-				FF743C892F97FD72000BB063 /* Sources */,
-				FF743C8A2F97FD72000BB063 /* Frameworks */,
-				FF743C8B2F97FD72000BB063 /* Resources */,
-				FF743CC32F97FD72000BB063 /* Embed Foundation Extensions */,
+				FF1001112F981A9800CBFFFE /* Sources */,
+				FF1001122F981A9800CBFFFE /* Frameworks */,
+				FF1001132F981A9800CBFFFE /* Resources */,
+				FF10014B2F981A9800CBFFFE /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				FF743CA62F97FD72000BB063 /* PBXTargetDependency */,
+				FF10012E2F981A9800CBFFFE /* PBXTargetDependency */,
 			);
 			name = "FontSource (macOS)";
 			packageProductDependencies = (
 			);
 			productName = "FontSource (macOS)";
-			productReference = FF743C8D2F97FD72000BB063 /* FontSource.app */;
+			productReference = FF1001152F981A9800CBFFFE /* FontSource.app */;
 			productType = "com.apple.product-type.application";
 		};
-		FF743C982F97FD72000BB063 /* FontSource Extension (iOS) */ = {
+		FF1001202F981A9800CBFFFE /* FontSource Extension (iOS) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = FF743CB92F97FD72000BB063 /* Build configuration list for PBXNativeTarget "FontSource Extension (iOS)" */;
+			buildConfigurationList = FF1001412F981A9800CBFFFE /* Build configuration list for PBXNativeTarget "FontSource Extension (iOS)" */;
 			buildPhases = (
-				FF743C952F97FD72000BB063 /* Sources */,
-				FF743C962F97FD72000BB063 /* Frameworks */,
-				FF743C972F97FD72000BB063 /* Resources */,
+				FF10011D2F981A9800CBFFFE /* Sources */,
+				FF10011E2F981A9800CBFFFE /* Frameworks */,
+				FF10011F2F981A9800CBFFFE /* Resources */,
 			);
 			buildRules = (
 			);
@@ -318,16 +318,16 @@
 			packageProductDependencies = (
 			);
 			productName = "FontSource Extension (iOS)";
-			productReference = FF743C992F97FD72000BB063 /* FontSource Extension.appex */;
+			productReference = FF1001212F981A9800CBFFFE /* FontSource Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		FF743CA22F97FD72000BB063 /* FontSource Extension (macOS) */ = {
+		FF10012A2F981A9800CBFFFE /* FontSource Extension (macOS) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = FF743CC02F97FD72000BB063 /* Build configuration list for PBXNativeTarget "FontSource Extension (macOS)" */;
+			buildConfigurationList = FF1001482F981A9800CBFFFE /* Build configuration list for PBXNativeTarget "FontSource Extension (macOS)" */;
 			buildPhases = (
-				FF743C9F2F97FD72000BB063 /* Sources */,
-				FF743CA02F97FD72000BB063 /* Frameworks */,
-				FF743CA12F97FD72000BB063 /* Resources */,
+				FF1001272F981A9800CBFFFE /* Sources */,
+				FF1001282F981A9800CBFFFE /* Frameworks */,
+				FF1001292F981A9800CBFFFE /* Resources */,
 			);
 			buildRules = (
 			);
@@ -337,193 +337,193 @@
 			packageProductDependencies = (
 			);
 			productName = "FontSource Extension (macOS)";
-			productReference = FF743CA32F97FD72000BB063 /* FontSource Extension.appex */;
+			productReference = FF10012B2F981A9800CBFFFE /* FontSource Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		FF743C682F97FD71000BB063 /* Project object */ = {
+		FF1000F02F981A9600CBFFFE /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
-					FF743C7A2F97FD72000BB063 = {
+					FF1001022F981A9800CBFFFE = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
-					FF743C8C2F97FD72000BB063 = {
+					FF1001142F981A9800CBFFFE = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
-					FF743C982F97FD72000BB063 = {
+					FF1001202F981A9800CBFFFE = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
-					FF743CA22F97FD72000BB063 = {
+					FF10012A2F981A9800CBFFFE = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
 				};
 			};
-			buildConfigurationList = FF743C6B2F97FD71000BB063 /* Build configuration list for PBXProject "FontSource" */;
+			buildConfigurationList = FF1000F32F981A9600CBFFFE /* Build configuration list for PBXProject "FontSource" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = FF743C672F97FD71000BB063;
+			mainGroup = FF1000EF2F981A9600CBFFFE;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = FF743C7C2F97FD72000BB063 /* Products */;
+			productRefGroup = FF1001042F981A9800CBFFFE /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				FF743C7A2F97FD72000BB063 /* FontSource (iOS) */,
-				FF743C8C2F97FD72000BB063 /* FontSource (macOS) */,
-				FF743C982F97FD72000BB063 /* FontSource Extension (iOS) */,
-				FF743CA22F97FD72000BB063 /* FontSource Extension (macOS) */,
+				FF1001022F981A9800CBFFFE /* FontSource (iOS) */,
+				FF1001142F981A9800CBFFFE /* FontSource (macOS) */,
+				FF1001202F981A9800CBFFFE /* FontSource Extension (iOS) */,
+				FF10012A2F981A9800CBFFFE /* FontSource Extension (macOS) */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		FF743C792F97FD72000BB063 /* Resources */ = {
+		FF1001012F981A9800CBFFFE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF743CAB2F97FD72000BB063 /* Icon.png in Resources */,
-				FF743C842F97FD72000BB063 /* LaunchScreen.storyboard in Resources */,
-				FF743CA92F97FD72000BB063 /* Main.html in Resources */,
-				FF743CAF2F97FD72000BB063 /* Script.js in Resources */,
-				FF743CB32F97FD72000BB063 /* Assets.xcassets in Resources */,
-				FF743C872F97FD72000BB063 /* Main.storyboard in Resources */,
-				FF743CAD2F97FD72000BB063 /* Style.css in Resources */,
+				FF1001332F981A9800CBFFFE /* Icon.png in Resources */,
+				FF10010C2F981A9800CBFFFE /* LaunchScreen.storyboard in Resources */,
+				FF1001312F981A9800CBFFFE /* Main.html in Resources */,
+				FF1001372F981A9800CBFFFE /* Script.js in Resources */,
+				FF10013B2F981A9800CBFFFE /* Assets.xcassets in Resources */,
+				FF10010F2F981A9800CBFFFE /* Main.storyboard in Resources */,
+				FF1001352F981A9800CBFFFE /* Style.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743C8B2F97FD72000BB063 /* Resources */ = {
+		FF1001132F981A9800CBFFFE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF743CAC2F97FD72000BB063 /* Icon.png in Resources */,
-				FF743CAE2F97FD72000BB063 /* Style.css in Resources */,
-				FF743C932F97FD72000BB063 /* Main.storyboard in Resources */,
-				FF743CB02F97FD72000BB063 /* Script.js in Resources */,
-				FF743CB42F97FD72000BB063 /* Assets.xcassets in Resources */,
-				FF743CAA2F97FD72000BB063 /* Main.html in Resources */,
+				FF1001342F981A9800CBFFFE /* Icon.png in Resources */,
+				FF1001362F981A9800CBFFFE /* Style.css in Resources */,
+				FF10011B2F981A9800CBFFFE /* Main.storyboard in Resources */,
+				FF1001382F981A9800CBFFFE /* Script.js in Resources */,
+				FF10013C2F981A9800CBFFFE /* Assets.xcassets in Resources */,
+				FF1001322F981A9800CBFFFE /* Main.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743C972F97FD72000BB063 /* Resources */ = {
+		FF10011F2F981A9800CBFFFE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF743CDB2F97FD72000BB063 /* lib in Resources */,
-				FF743CD62F97FD72000BB063 /* settings in Resources */,
-				FF743CD92F97FD72000BB063 /* icons in Resources */,
-				FF743CDA2F97FD72000BB063 /* manifest.json in Resources */,
-				FF743CD82F97FD72000BB063 /* background.js in Resources */,
-				FF743CDC2F97FD72000BB063 /* content.js in Resources */,
-				FF743CD72F97FD72000BB063 /* popup in Resources */,
+				FF1001632F981A9800CBFFFE /* lib in Resources */,
+				FF10015E2F981A9800CBFFFE /* settings in Resources */,
+				FF1001612F981A9800CBFFFE /* icons in Resources */,
+				FF1001622F981A9800CBFFFE /* manifest.json in Resources */,
+				FF1001602F981A9800CBFFFE /* background.js in Resources */,
+				FF1001642F981A9800CBFFFE /* content.js in Resources */,
+				FF10015F2F981A9800CBFFFE /* popup in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743CA12F97FD72000BB063 /* Resources */ = {
+		FF1001292F981A9800CBFFFE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF743CD42F97FD72000BB063 /* lib in Resources */,
-				FF743CCF2F97FD72000BB063 /* settings in Resources */,
-				FF743CD22F97FD72000BB063 /* icons in Resources */,
-				FF743CD32F97FD72000BB063 /* manifest.json in Resources */,
-				FF743CD12F97FD72000BB063 /* background.js in Resources */,
-				FF743CD52F97FD72000BB063 /* content.js in Resources */,
-				FF743CD02F97FD72000BB063 /* popup in Resources */,
+				FF10015C2F981A9800CBFFFE /* lib in Resources */,
+				FF1001572F981A9800CBFFFE /* settings in Resources */,
+				FF10015A2F981A9800CBFFFE /* icons in Resources */,
+				FF10015B2F981A9800CBFFFE /* manifest.json in Resources */,
+				FF1001592F981A9800CBFFFE /* background.js in Resources */,
+				FF10015D2F981A9800CBFFFE /* content.js in Resources */,
+				FF1001582F981A9800CBFFFE /* popup in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		FF743C772F97FD72000BB063 /* Sources */ = {
+		FF1000FF2F981A9800CBFFFE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF743CB12F97FD72000BB063 /* ViewController.swift in Sources */,
-				FF743C7F2F97FD72000BB063 /* AppDelegate.swift in Sources */,
-				FF743C812F97FD72000BB063 /* SceneDelegate.swift in Sources */,
+				FF1001392F981A9800CBFFFE /* ViewController.swift in Sources */,
+				FF1001072F981A9800CBFFFE /* AppDelegate.swift in Sources */,
+				FF1001092F981A9800CBFFFE /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743C892F97FD72000BB063 /* Sources */ = {
+		FF1001112F981A9800CBFFFE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF743CB22F97FD72000BB063 /* ViewController.swift in Sources */,
-				FF743C902F97FD72000BB063 /* AppDelegate.swift in Sources */,
+				FF10013A2F981A9800CBFFFE /* ViewController.swift in Sources */,
+				FF1001182F981A9800CBFFFE /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743C952F97FD72000BB063 /* Sources */ = {
+		FF10011D2F981A9800CBFFFE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF743CB52F97FD72000BB063 /* SafariWebExtensionHandler.swift in Sources */,
+				FF10013D2F981A9800CBFFFE /* SafariWebExtensionHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF743C9F2F97FD72000BB063 /* Sources */ = {
+		FF1001272F981A9800CBFFFE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF743CB62F97FD72000BB063 /* SafariWebExtensionHandler.swift in Sources */,
+				FF10013E2F981A9800CBFFFE /* SafariWebExtensionHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		FF743C9C2F97FD72000BB063 /* PBXTargetDependency */ = {
+		FF1001242F981A9800CBFFFE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = FF743C982F97FD72000BB063 /* FontSource Extension (iOS) */;
-			targetProxy = FF743C9B2F97FD72000BB063 /* PBXContainerItemProxy */;
+			target = FF1001202F981A9800CBFFFE /* FontSource Extension (iOS) */;
+			targetProxy = FF1001232F981A9800CBFFFE /* PBXContainerItemProxy */;
 		};
-		FF743CA62F97FD72000BB063 /* PBXTargetDependency */ = {
+		FF10012E2F981A9800CBFFFE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = FF743CA22F97FD72000BB063 /* FontSource Extension (macOS) */;
-			targetProxy = FF743CA52F97FD72000BB063 /* PBXContainerItemProxy */;
+			target = FF10012A2F981A9800CBFFFE /* FontSource Extension (macOS) */;
+			targetProxy = FF10012D2F981A9800CBFFFE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		FF743C6E2F97FD71000BB063 /* Main.html */ = {
+		FF1000F62F981A9600CBFFFE /* Main.html */ = {
 			isa = PBXVariantGroup;
 			children = (
-				FF743C6F2F97FD71000BB063 /* Base */,
+				FF1000F72F981A9600CBFFFE /* Base */,
 			);
 			name = Main.html;
 			sourceTree = "<group>";
 		};
-		FF743C822F97FD72000BB063 /* LaunchScreen.storyboard */ = {
+		FF10010A2F981A9800CBFFFE /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				FF743C832F97FD72000BB063 /* Base */,
+				FF10010B2F981A9800CBFFFE /* Base */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
-		FF743C852F97FD72000BB063 /* Main.storyboard */ = {
+		FF10010D2F981A9800CBFFFE /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				FF743C862F97FD72000BB063 /* Base */,
+				FF10010E2F981A9800CBFFFE /* Base */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
 		};
-		FF743C912F97FD72000BB063 /* Main.storyboard */ = {
+		FF1001192F981A9800CBFFFE /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				FF743C922F97FD72000BB063 /* Base */,
+				FF10011A2F981A9800CBFFFE /* Base */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -531,7 +531,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		FF743CB72F97FD72000BB063 /* Debug */ = {
+		FF10013F2F981A9800CBFFFE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -592,7 +592,7 @@
 			};
 			name = Debug;
 		};
-		FF743CB82F97FD72000BB063 /* Release */ = {
+		FF1001402F981A9800CBFFFE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -645,7 +645,7 @@
 			};
 			name = Release;
 		};
-		FF743CBA2F97FD72000BB063 /* Debug */ = {
+		FF1001422F981A9800CBFFFE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -678,7 +678,7 @@
 			};
 			name = Debug;
 		};
-		FF743CBB2F97FD72000BB063 /* Release */ = {
+		FF1001432F981A9800CBFFFE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -712,7 +712,7 @@
 			};
 			name = Release;
 		};
-		FF743CBE2F97FD72000BB063 /* Debug */ = {
+		FF1001462F981A9800CBFFFE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -752,7 +752,7 @@
 			};
 			name = Debug;
 		};
-		FF743CBF2F97FD72000BB063 /* Release */ = {
+		FF1001472F981A9800CBFFFE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -793,7 +793,7 @@
 			};
 			name = Release;
 		};
-		FF743CC12F97FD72000BB063 /* Debug */ = {
+		FF1001492F981A9800CBFFFE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -828,7 +828,7 @@
 			};
 			name = Debug;
 		};
-		FF743CC22F97FD72000BB063 /* Release */ = {
+		FF10014A2F981A9800CBFFFE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -863,7 +863,7 @@
 			};
 			name = Release;
 		};
-		FF743CC52F97FD72000BB063 /* Debug */ = {
+		FF10014D2F981A9800CBFFFE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -904,7 +904,7 @@
 			};
 			name = Debug;
 		};
-		FF743CC62F97FD72000BB063 /* Release */ = {
+		FF10014E2F981A9800CBFFFE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -948,52 +948,52 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		FF743C6B2F97FD71000BB063 /* Build configuration list for PBXProject "FontSource" */ = {
+		FF1000F32F981A9600CBFFFE /* Build configuration list for PBXProject "FontSource" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				FF743CB72F97FD72000BB063 /* Debug */,
-				FF743CB82F97FD72000BB063 /* Release */,
+				FF10013F2F981A9800CBFFFE /* Debug */,
+				FF1001402F981A9800CBFFFE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FF743CB92F97FD72000BB063 /* Build configuration list for PBXNativeTarget "FontSource Extension (iOS)" */ = {
+		FF1001412F981A9800CBFFFE /* Build configuration list for PBXNativeTarget "FontSource Extension (iOS)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				FF743CBA2F97FD72000BB063 /* Debug */,
-				FF743CBB2F97FD72000BB063 /* Release */,
+				FF1001422F981A9800CBFFFE /* Debug */,
+				FF1001432F981A9800CBFFFE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FF743CBD2F97FD72000BB063 /* Build configuration list for PBXNativeTarget "FontSource (iOS)" */ = {
+		FF1001452F981A9800CBFFFE /* Build configuration list for PBXNativeTarget "FontSource (iOS)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				FF743CBE2F97FD72000BB063 /* Debug */,
-				FF743CBF2F97FD72000BB063 /* Release */,
+				FF1001462F981A9800CBFFFE /* Debug */,
+				FF1001472F981A9800CBFFFE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FF743CC02F97FD72000BB063 /* Build configuration list for PBXNativeTarget "FontSource Extension (macOS)" */ = {
+		FF1001482F981A9800CBFFFE /* Build configuration list for PBXNativeTarget "FontSource Extension (macOS)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				FF743CC12F97FD72000BB063 /* Debug */,
-				FF743CC22F97FD72000BB063 /* Release */,
+				FF1001492F981A9800CBFFFE /* Debug */,
+				FF10014A2F981A9800CBFFFE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FF743CC42F97FD72000BB063 /* Build configuration list for PBXNativeTarget "FontSource (macOS)" */ = {
+		FF10014C2F981A9800CBFFFE /* Build configuration list for PBXNativeTarget "FontSource (macOS)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				FF743CC52F97FD72000BB063 /* Debug */,
-				FF743CC62F97FD72000BB063 /* Release */,
+				FF10014D2F981A9800CBFFFE /* Debug */,
+				FF10014E2F981A9800CBFFFE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = FF743C682F97FD71000BB063 /* Project object */;
+	rootObject = FF1000F02F981A9600CBFFFE /* Project object */;
 }

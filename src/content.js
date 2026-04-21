@@ -85,6 +85,41 @@ function extensionRuntime() {
   return null;
 }
 
+function runtimeSendMessage(payload) {
+  const rt = extensionRuntime();
+  if (!rt || !rt.runtime || typeof rt.runtime.sendMessage !== 'function') {
+    return Promise.resolve(null);
+  }
+
+  if (typeof globalThis.browser !== 'undefined' && rt === globalThis.browser) {
+    try {
+      return rt.runtime.sendMessage(payload).catch((e) => {
+        console.warn('FontSource: runtimeSendMessage browser send failed', e);
+        return null;
+      });
+    } catch (e) {
+      console.warn('FontSource: runtimeSendMessage browser send threw', e);
+      return Promise.resolve(null);
+    }
+  }
+
+  return new Promise((resolve) => {
+    try {
+      rt.runtime.sendMessage(payload, (response) => {
+        if (rt.runtime.lastError) {
+          console.warn('FontSource: runtimeSendMessage callback failed', rt.runtime.lastError.message);
+          resolve(null);
+          return;
+        }
+        resolve(response);
+      });
+    } catch (e) {
+      console.warn('FontSource: runtimeSendMessage callback send threw', e);
+      resolve(null);
+    }
+  });
+}
+
 function safeSendResponse(sendResponse, payload) {
   try {
     sendResponse(payload);
@@ -105,46 +140,11 @@ function safeSendResponse(sendResponse, payload) {
 }
 
 function fetchRemoteRulesViaBackground() {
-  return new Promise((resolve) => {
-    const rt = extensionRuntime();
-    const hrefs =
-      typeof getExternalStylesheetHrefs === 'function' ? getExternalStylesheetHrefs() : [];
-    if (!rt || !rt.runtime || !rt.runtime.sendMessage) {
-      resolve([]);
-      return;
-    }
-    try {
-      rt.runtime.sendMessage({ action: 'fetchRemoteFontFaces', hrefs }, (r) => {
-        if (rt.runtime.lastError) {
-          resolve([]);
-          return;
-        }
-        resolve((r && r.rules) || []);
-      });
-    } catch (e) {
-      resolve([]);
-    }
-  });
-}
-
-/**
- * Initial scan must not block the tab thread: huge pages (e.g. HN comment threads) would
- * freeze synchronous detectFonts() and the background would time out waiting for scanPage.
- */
-function runInitialFontDetection() {
-  console.log('FontSource: Content script ready');
-  setTimeout(() => {
-    void (async () => {
-      try {
-        const raw = await detectFontsWithProgress(scanOptions, () => {}, fetchRemoteRulesViaBackground);
-        detectedFonts = raw;
-        console.log('FontSource: Initial scan done,', raw.length, 'fonts');
-      } catch (e) {
-        console.error('FontSource: Initial font detection failed', e);
-        detectedFonts = [];
-      }
-    })();
-  }, 0);
+  const hrefs =
+    typeof getExternalStylesheetHrefs === 'function' ? getExternalStylesheetHrefs() : [];
+  return runtimeSendMessage({ action: 'fetchRemoteFontFaces', hrefs }).then((r) =>
+    (r && r.rules) || []
+  );
 }
 
 function createThrottledProgressEmitter() {
@@ -272,13 +272,9 @@ if (typeof window !== 'undefined') {
       if (!event.persisted) {
         return;
       }
+      /* bfcache restore: drop stale results; user runs a new scan from the popup. */
       detectedFonts = [];
       attachMessageListener();
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', runInitialFontDetection, { once: true });
-      } else {
-        runInitialFontDetection();
-      }
     },
     false
   );
@@ -315,7 +311,6 @@ function getOptions() {
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    init: runInitialFontDetection,
     detectFontsOnPage,
     getFonts,
     getOptions,
@@ -325,18 +320,9 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 /**
- * Run initial detection once the document is far enough along. The message listener is
- * already registered above so the popup never hits "No response from the page script"
- * while waiting for DOMContentLoaded (common on heavy SPAs like svgrepo.com).
- * Guarded so programmatic re-injection does not double-schedule work.
+ * Font detection runs only when the user starts a scan from the popup (`scanPage`) or
+ * via the background test hook. The message listener is registered immediately so the
+ * popup never hits "No response from the page script" on first open.
  */
-if (typeof window !== 'undefined' && !globalThis.__FONT_SOURCE_BOOT_ONCE__) {
-  globalThis.__FONT_SOURCE_BOOT_ONCE__ = true;
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runInitialFontDetection, { once: true });
-  } else {
-    runInitialFontDetection();
-  }
-}
 
 })();

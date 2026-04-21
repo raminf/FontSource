@@ -1,8 +1,14 @@
 {
   "manifest_version": 2,
   "name": "FontSource",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Detect fonts, their sources, and license information on any website",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "fontsource@github.com",
+      "strict_min_version": "91.1"
+    }
+  },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -10,18 +16,20 @@
   },
   "permissions": [
     "storage",
-    "scripting",
-    "<all_urls>"
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "scripts": [
+      "lib/font-face-remote.js",
       "background.js"
     ]
   },
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "http://*/*",
+        "https://*/*"
       ],
       "js": [
         "lib/font-detection.js",

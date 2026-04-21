@@ -23,6 +23,7 @@
   },
   "ignorePatterns": [
     "node_modules/",
+    "artifacts/",
     "dist/",
     "build/",
     "coverage/",

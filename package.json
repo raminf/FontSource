@@ -1,6 +1,6 @@
 {
   "name": "fontsource",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Browser extension to detect fonts, their sources, and licenses",
   "main": "src/background.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "package:chrome": "make package-chrome",
     "package:firefox": "make package-firefox",
     "package:safari": "make package-safari",
-    "bundle": "make bundle"
+    "bundle": "make package-safari"
   },
   "keywords": [
     "font",

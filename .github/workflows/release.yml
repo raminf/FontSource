@@ -24,7 +24,7 @@ jobs:
         run: |
           v=$(grep '^VERSION :=' Makefile | sed 's/^VERSION := *//')
           echo "version=$v" >> "$GITHUB_OUTPUT"
-          echo "CHROME_ZIP_PATH=${GITHUB_WORKSPACE}/fontsource-chrome-${v}.zip" >> "$GITHUB_ENV"
+          echo "CHROME_ZIP_PATH=${GITHUB_WORKSPACE}/artifacts/fontsource-chrome-${v}.zip" >> "$GITHUB_ENV"
 
       - name: Package Chrome zip
         run: make package-chrome
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: fontsource-chrome
-          path: fontsource-chrome-*.zip
+          path: artifacts/fontsource-chrome-*.zip
 
   firefox:
     runs-on: ubuntu-latest
@@ -67,7 +67,7 @@ jobs:
 
       - run: npm ci
 
-      - name: Package Firefox zip (and Firefox manifest into dist/)
+      - name: Package Firefox zip (MV2 manifest in artifacts/firefox/)
         run: make package-firefox
 
       - name: Submit to AMO (listed)
@@ -84,7 +84,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: fontsource-firefox
-          path: fontsource-firefox-*.zip
+          path: artifacts/fontsource-firefox-*.zip
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ secrets.WEB_EXT_API_KEY != '' && secrets.WEB_EXT_API_SECRET != '' }}
+        with:
+          name: firefox-signed
+          path: firefox-artifacts/*
+          if-no-files-found: ignore
 
   safari:
     runs-on: macos-latest
@@ -98,10 +105,10 @@ jobs:
 
       - run: npm ci
 
-      - name: Rebuild Safari Xcode wrapper
+      - name: Build Safari Xcode wrapper
         run: make package-safari
 
-      - name: Optional App Store Connect hook
+      - name: Optional App Store Connect hook (informational only)
         env:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}

@@ -22,15 +22,56 @@ const scanProgressFill = document.getElementById('scanProgressFill');
 const scanProgressLabel = document.getElementById('scanProgressLabel');
 const scanProgressMeta = document.getElementById('scanProgressMeta');
 const pageScanBtn = document.getElementById('pageScanBtn');
+const POPUP_LOG_TAG = '[FontSource popup]';
+
+function popupLog(message, extra) {
+  if (typeof window !== 'undefined' && typeof window.__fontSourcePopupDebug === 'function') {
+    try {
+      if (typeof extra === 'undefined') {
+        window.__fontSourcePopupDebug(message);
+      } else {
+        window.__fontSourcePopupDebug(message, extra);
+      }
+    } catch (_e) {
+      /* ignore debug bridge failures */
+    }
+  }
+  if (typeof extra === 'undefined') {
+    console.log(POPUP_LOG_TAG, message);
+    return;
+  }
+  console.log(POPUP_LOG_TAG, message, extra);
+}
+
+/**
+ * Firefox exposes `browser.*` with Promises; Chrome uses `chrome.*` with callbacks.
+ * Prefer `browser` when present so messaging works reliably in Firefox popups.
+ * @returns {{ runtime: object, tabs: object | undefined } | { runtime: null, tabs: null }}
+ */
+function extensionApi() {
+  if (typeof browser !== 'undefined' && browser.runtime && typeof browser.runtime.sendMessage === 'function') {
+    return { runtime: browser.runtime, tabs: browser.tabs };
+  }
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    return { runtime: chrome.runtime, tabs: chrome.tabs };
+  }
+  return { runtime: null, tabs: null };
+}
 
 (function setPopupVersionFromManifest() {
   try {
     const el = document.getElementById('popupAppVersion');
-    if (el) {
-      el.textContent = `v${chrome.runtime.getManifest().version}`;
+    const api = extensionApi();
+    popupLog('setPopupVersionFromManifest', {
+      hasElement: !!el,
+      hasRuntime: !!api.runtime,
+      hasTabs: !!api.tabs
+    });
+    if (el && api.runtime && typeof api.runtime.getManifest === 'function') {
+      el.textContent = `v${api.runtime.getManifest().version}`;
     }
-  } catch (_e) {
-    /* ignore */
+  } catch (e) {
+    console.error(POPUP_LOG_TAG, 'setPopupVersionFromManifest failed', e);
   }
 })();
 
@@ -52,7 +93,10 @@ let uiMode = 'blank';
 function connectFontScanProgressPort() {
   disconnectFontScanProgressPort();
   try {
-    fontScanProgressPort = chrome.runtime.connect({ name: 'fontScanProgress' });
+    const api = extensionApi();
+    if (api.runtime && typeof api.runtime.connect === 'function') {
+      fontScanProgressPort = api.runtime.connect({ name: 'fontScanProgress' });
+    }
   } catch (e) {
     fontScanProgressPort = null;
   }
@@ -113,11 +157,23 @@ function applyScanProgressPayload(payload) {
 }
 
 function sendMessage(payload) {
+  popupLog('sendMessage', payload);
+  const api = extensionApi();
+  if (!api.runtime || typeof api.runtime.sendMessage !== 'function') {
+    popupLog('sendMessage skipped: runtime API unavailable');
+    return Promise.resolve(null);
+  }
+  if (typeof browser !== 'undefined' && api.runtime === browser.runtime) {
+    return api.runtime.sendMessage(payload).catch((e) => {
+      const msg = e && e.message ? e.message : String(e);
+      console.warn('FontSource popup message error:', msg);
+      return null;
+    });
+  }
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage(payload, (response) => {
-      const err = chrome.runtime.lastError;
-      if (err) {
-        console.warn('FontSource popup message error:', err.message);
+    api.runtime.sendMessage(payload, (response) => {
+      if (api.runtime.lastError) {
+        console.warn('FontSource popup message error:', api.runtime.lastError.message);
         resolve(null);
         return;
       }
@@ -126,7 +182,112 @@ function sendMessage(payload) {
   });
 }
 
+function isScannableWebUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return false;
+  }
+  const u = url.toLowerCase();
+  return u.startsWith('http://') || u.startsWith('https://');
+}
+
+function queryTabsFromPopup(query) {
+  if (typeof browser !== 'undefined' && browser.tabs && typeof browser.tabs.query === 'function') {
+    return browser.tabs.query(query).catch(() => []);
+  }
+
+  const api = extensionApi();
+  if (!api.tabs || typeof api.tabs.query !== 'function') {
+    return Promise.resolve([]);
+  }
+
+  return new Promise((resolve) => {
+    api.tabs.query(query, (tabs) => {
+      const err =
+        typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError
+          ? chrome.runtime.lastError
+          : null;
+      if (err) {
+        resolve([]);
+        return;
+      }
+      resolve(tabs || []);
+    });
+  });
+}
+
+/** Firefox MV2 build only; Chrome and Safari ship MV3 (manifest_version 3). */
+function isFirefoxMv2ExtensionPopup() {
+  try {
+    const mv =
+      typeof browser !== 'undefined' && browser.runtime && browser.runtime.getManifest
+        ? browser.runtime.getManifest().manifest_version
+        : undefined;
+    return mv === 2;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Firefox MV2: background tabs.query can miss the page while the toolbar popup has focus;
+ * the popup can still query the active tab. Unused on Chrome/Safari MV3.
+ * @returns {Promise<{ url: string, tabId: number, scannable: true } | null>}
+ */
+async function resolveTabContextFromPopupWindow() {
+  const api =
+    typeof browser !== 'undefined' && browser.tabs
+      ? browser
+      : typeof chrome !== 'undefined' && chrome.tabs
+        ? chrome
+        : null;
+  if (!api || !api.tabs || !api.tabs.query) {
+    return null;
+  }
+
+  let tabs = await queryTabsFromPopup({ active: true, lastFocusedWindow: true });
+  let pick = tabs.find((t) => t && t.id != null && t.url && isScannableWebUrl(t.url));
+  if (!pick) {
+    tabs = await queryTabsFromPopup({ active: true });
+    pick = tabs.find((t) => t && t.id != null && t.url && isScannableWebUrl(t.url));
+  }
+  if (!pick) {
+    return null;
+  }
+  return { url: pick.url, tabId: pick.id, scannable: true };
+}
+
+/**
+ * Merge background getTabScanContext with a popup-side fallback for reliable tabId + URL.
+ * @returns {Promise<{ url: string, tabId?: number, scannable: boolean }>}
+ */
+async function getTabScanContextMerged() {
+  const raw = (await sendMessage({ action: 'getTabScanContext' })) || {};
+  popupLog('getTabScanContextMerged raw', raw);
+  const url = typeof raw.url === 'string' ? raw.url : '';
+  const tabId = typeof raw.tabId === 'number' && Number.isFinite(raw.tabId) ? raw.tabId : undefined;
+  const okFromBg = !!(raw.scannable && url && isScannableWebUrl(url) && tabId != null);
+
+  if (okFromBg) {
+    return { url, tabId, scannable: true };
+  }
+
+  let fromPopup = null;
+  if (isFirefoxMv2ExtensionPopup()) {
+    fromPopup = await resolveTabContextFromPopupWindow();
+  }
+  if (fromPopup) {
+    return fromPopup;
+  }
+
+  return {
+    url: url || '',
+    tabId,
+    scannable: !!(raw.scannable && url && isScannableWebUrl(url) && tabId != null)
+  };
+}
+
 function showPageReadyUi(tabUrl) {
+  popupLog('showPageReadyUi', { tabUrl });
   loadingSection.style.display = 'none';
   resultsSection.style.display = 'none';
   emptySection.hidden = true;
@@ -138,11 +299,18 @@ function showPageReadyUi(tabUrl) {
 }
 
 async function init() {
+  popupLog('init start', {
+    readyState: document.readyState,
+    innerWidth: window.innerWidth,
+    innerHeight: window.innerHeight,
+    bodyClientWidth: document.body ? document.body.clientWidth : null,
+    bodyClientHeight: document.body ? document.body.clientHeight : null
+  });
   await loadState();
   setupEventListeners();
 
-  /** Tab + URL must come from the background (popup tabs.query targets the popup window). */
-  const ctx = await sendMessage({ action: 'getTabScanContext' });
+  const ctx = await getTabScanContextMerged();
+  popupLog('init tab context', ctx);
   const tabUrl = ctx && ctx.url ? ctx.url : '';
   const scannable = !!(ctx && ctx.scannable);
 
@@ -150,11 +318,11 @@ async function init() {
   activeTargetTabId = typeof ctx?.tabId === 'number' ? ctx.tabId : undefined;
 
   if (scannable) {
+    popupLog('init resolved page mode', { tabUrl, activeTargetTabId });
     uiMode = 'page';
     applyLayoutMode();
     blankIntro.hidden = true;
-    urlSectionHint.textContent =
-      'Click "Scan this page" when you are ready (large sites are scanned incrementally). Or open another site below.';
+    urlSectionHint.textContent = 'Or open another address below.';
     showPageReadyUi(tabUrl);
     if (pageScanBtn && typeof activeTargetTabId !== 'number') {
       pageScanBtn.disabled = true;
@@ -162,12 +330,12 @@ async function init() {
         'Could not resolve the page tab from the extension. Close the popup, focus the site tab, and open FontSource again.';
     }
   } else {
+    popupLog('init resolved blank mode', { tabUrl, activeTargetTabId });
     uiMode = 'blank';
     applyLayoutMode();
     activePageBar.hidden = true;
     blankIntro.hidden = false;
-    urlSectionHint.textContent =
-      'Enter a website address to open it. When the page has loaded, open FontSource and tap "Scan this page".';
+    urlSectionHint.textContent = 'Open a site with the field below, then use Scan this page.';
     resultsSection.style.display = 'none';
     loadingSection.style.display = 'none';
     emptySection.hidden = true;
@@ -181,6 +349,7 @@ function applyLayoutMode() {
 
 async function loadState() {
   const response = await sendMessage({ action: 'getState' });
+  popupLog('loadState response', response);
   if (response && response.state) {
     scanOptions = response.state.scanOptions || { scanRoot: false };
     showPreview = response.state.showPreview !== false;
@@ -192,10 +361,11 @@ async function loadState() {
 }
 
 function setupEventListeners() {
+  popupLog('setupEventListeners');
   scanBtn.addEventListener('click', () => openSubmittedUrl());
   if (pageScanBtn) {
     pageScanBtn.addEventListener('click', async () => {
-      const ctx = await sendMessage({ action: 'getTabScanContext' });
+      const ctx = await getTabScanContextMerged();
       if (!ctx || !ctx.scannable) {
         showEmptyState('No scannable page found. Click the website tab, then open FontSource again.');
         return;
@@ -250,6 +420,7 @@ function setUrlFeedback(message, isError) {
 
 async function openSubmittedUrl() {
   const raw = urlInput.value.trim();
+  popupLog('openSubmittedUrl', { raw });
   if (!raw) {
     setUrlFeedback('Enter full URL.', true);
     return;
@@ -270,6 +441,7 @@ async function openSubmittedUrl() {
 }
 
 async function scanCurrentPage(explicitTabId) {
+  popupLog('scanCurrentPage start', { explicitTabId, activeTargetTabId });
   if (pageScanBtn) {
     pageScanBtn.disabled = true;
   }
@@ -287,6 +459,7 @@ async function scanCurrentPage(explicitTabId) {
       options: scanOptions,
       tabId
     });
+    popupLog('scanCurrentPage response', response);
 
     if (response && Array.isArray(response.fonts)) {
       currentFonts = response.fonts;
@@ -317,6 +490,7 @@ async function scanCurrentPage(explicitTabId) {
     console.error('Scan error:', e);
     showEmptyState('Failed to scan page. Try reloading the tab.');
   } finally {
+    popupLog('scanCurrentPage finally');
     if (fontScanProgressPort) {
       fontScanProgressPort.onMessage.removeListener(applyScanProgressPayload);
     }
@@ -521,6 +695,7 @@ function familiesForPreviewCss(name) {
 }
 
 async function displayFonts(fonts) {
+  popupLog('displayFonts', { count: Array.isArray(fonts) ? fonts.length : null });
   if (!fonts || fonts.length === 0) {
     showEmptyState('No fonts were detected on this page.');
     return;
@@ -592,7 +767,10 @@ async function openFontFindTab(query) {
     if (u.protocol !== 'http:' && u.protocol !== 'https:') {
       return;
     }
-    chrome.tabs.create({ url: u.href, active: true });
+    const tabsApi = extensionApi().tabs;
+    if (tabsApi && typeof tabsApi.create === 'function') {
+      tabsApi.create({ url: u.href, active: true });
+    }
   } catch (e) {
     console.warn('FontSource: invalid find URL', e);
   }
@@ -689,6 +867,7 @@ function createFontCard(font, cardIndex, previewHint) {
 }
 
 function showLoading() {
+  popupLog('showLoading');
   removePreviewFontStyles();
   resultsSection.style.display = 'none';
   emptySection.hidden = true;
@@ -697,6 +876,7 @@ function showLoading() {
 }
 
 function showEmptyState(message) {
+  popupLog('showEmptyState', { message });
   removePreviewFontStyles();
   resultsSection.style.display = 'none';
   loadingSection.style.display = 'none';
@@ -705,7 +885,17 @@ function showEmptyState(message) {
 }
 
 function openSettings() {
-  chrome.runtime.openOptionsPage();
+  const api = extensionApi().runtime;
+  if (api && typeof api.openOptionsPage === 'function') {
+    try {
+      const maybe = api.openOptionsPage();
+      if (maybe && typeof maybe.catch === 'function') {
+        maybe.catch(() => {});
+      }
+    } catch (_e) {
+      /* ignore */
+    }
+  }
 }
 
 function escapeHtml(text) {
@@ -778,7 +968,9 @@ function truncateUrl(url, maxLength) {
 }
 
 if (document.readyState === 'loading') {
+  popupLog('binding DOMContentLoaded init');
   document.addEventListener('DOMContentLoaded', init);
 } else {
+  popupLog('running init immediately');
   void init();
 }

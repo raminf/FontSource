@@ -7,7 +7,7 @@
  *
  * Env:
  *   FONT_SOURCE_PANEL_HEADLESS=1  — try headless (extensions may require headed Chromium; unset = windowed)
- *   FONT_SOURCE_EXT_DIR          — override path to unpacked extension (default: ./dist)
+ *   FONT_SOURCE_EXT_DIR          — override path to unpacked extension (default: ./artifacts/chrome)
  */
 import fs from 'node:fs';
 import http from 'node:http';
@@ -82,9 +82,9 @@ async function main() {
     process.exit(1);
   }
 
-  const extDir = path.resolve(process.env.FONT_SOURCE_EXT_DIR || path.join(ROOT, 'dist'));
+  const extDir = path.resolve(process.env.FONT_SOURCE_EXT_DIR || path.join(ROOT, 'artifacts', 'chrome'));
   if (!fs.existsSync(path.join(extDir, 'manifest.json'))) {
-    console.error(`Unpacked extension not found at ${extDir} (need manifest.json). Run: make build`);
+    console.error(`Unpacked extension not found at ${extDir} (need manifest.json). Run: make build-chrome`);
     process.exit(1);
   }
 

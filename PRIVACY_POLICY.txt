@@ -1,9 +1,26 @@
 FontSource — Privacy Policy
 =============================
 
-This document describes how the FontSource browser extension handles information.
-FontSource is open source. This policy matches what the extension does in code:
-it does not send your browsing data to a FontSource-operated service.
+At a glance — personal data collected or accessed
+--------------------------------------------------
+Personal data collected for the FontSource project (sent to servers we run): NONE. 
+
+There is no FontSource account, no sign-up, and no pipeline that uploads
+your name, email, contacts, precise location, or a log of sites you visit to us.
+
+What the extension does access, only when you use it and only in your browser:
+  • The active tab’s page so it can read fonts and related CSS (styles,
+    computed fonts, and similar technical data needed to show results).
+  • Optional HTTPS requests from your browser to third-party URLs that the
+    page already references (e.g. stylesheets on font hosts), so @font-face
+    rules can be parsed. Those requests are not sent to FontSource; they go to
+    the same public hosts the site would load anyway.
+
+What is stored: only your extension preferences in the browser’s local storage
+on your device (see section 3). We do not receive a copy of that storage.
+
+This document describes the rest in more detail. FontSource is open source;
+this policy matches what the extension does in code.
 
 Last updated: April 2026
 
@@ -15,14 +32,14 @@ Firefox, Safari, etc.). There is no FontSource login, account, or cloud backend
 run by the extension for storing your activity.
 
 
-2. Data we do not collect
--------------------------
+2. What we still do not do (beyond the summary above)
+------------------------------------------------------
 The extension does not:
 
   • Track or profile you for advertising
   • Run analytics or crash reporting to a FontSource-controlled server
   • Sell or rent personal data
-  • Upload the list of sites you visit to FontSource
+  • Upload your browsing history or a list of sites you visit to FontSource
 
 Browser vendors (Google, Apple, Mozilla, etc.) may collect their own
 aggregated store or browser telemetry according to their policies; that is
@@ -31,13 +48,13 @@ outside this extension’s code.
 
 3. What stays on your device
 ----------------------------
-FontSource saves a small set of **local-only** settings using the browser’s
-extension storage (e.g. Chrome’s `chrome.storage.local`). That typically
+FontSource saves a small set of local-only settings using the browser’s
+extension storage (e.g. Chrome’s chrome.storage.local). That typically
 includes things like scan options, UI preferences (e.g. preview on/off,
 grouping), and your “find font” search URL template.
 
 This data remains on your device unless your browser syncs extension data
-according to **your** browser and account settings (FontSource does not
+according to your browser and account settings (FontSource does not
 implement its own sync server).
 
 
@@ -48,10 +65,10 @@ reads information from the active page (such as styles and computed fonts) to
 show you results.
 
 To resolve fonts loaded from other hosts (for example Google Fonts or Adobe
-Fonts stylesheets), the extension’s background portion may **request those
-stylesheet URLs over HTTPS** so it can parse public CSS (e.g. `@font-face`)
-and show source and license hints. Those requests go to the **same third-party
-hosts** the page already uses; they are not sent to a separate “FontSource”
+Fonts stylesheets), the extension’s background portion may request those
+stylesheet URLs over HTTPS so it can parse public CSS (e.g. @font-face)
+and show source and license hints. Those requests go to the same third-party
+hosts the page already uses; they are not sent to a separate FontSource
 analytics API. The extension does not execute remote JavaScript as extension
 code; it fetches stylesheet text for parsing.
 

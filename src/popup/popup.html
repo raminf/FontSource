@@ -4,10 +4,88 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FontSource - Font Detector</title>
+  <style>
+    html {
+      width: 400px;
+      min-width: 400px;
+      height: 520px;
+      min-height: 520px;
+      max-height: 520px;
+    }
+
+    body {
+      margin: 0;
+      width: 400px;
+      min-width: 400px;
+      height: 520px;
+      min-height: 520px;
+      max-height: 520px;
+    }
+  </style>
   <link rel="stylesheet" href="popup.css">
+  <script>
+    (() => {
+      const tag = '[FontSource popup bootstrap]';
+      const debugLines = [];
+      const pushDebug = (...parts) => {
+        const line = parts
+          .map((part) => {
+            if (typeof part === 'string') return part;
+            try {
+              return JSON.stringify(part);
+            } catch {
+              return String(part);
+            }
+          })
+          .join(' ');
+        debugLines.push(line);
+        console.log(tag, ...parts);
+        const pre = document.getElementById('popupDebugLog');
+        if (pre) {
+          pre.textContent = debugLines.slice(-12).join('\n');
+        }
+      };
+      const logDims = (phase) => {
+        try {
+          pushDebug(phase, {
+            readyState: document.readyState,
+            innerWidth: window.innerWidth,
+            innerHeight: window.innerHeight,
+            clientWidth: document.documentElement.clientWidth,
+            clientHeight: document.documentElement.clientHeight,
+            bodyClientWidth: document.body ? document.body.clientWidth : null,
+            bodyClientHeight: document.body ? document.body.clientHeight : null
+          });
+        } catch (error) {
+          pushDebug(phase, 'dimension log failed', error && error.message ? error.message : error);
+        }
+      };
+
+      window.addEventListener('error', (event) => {
+        pushDebug('window error', {
+          message: event.message,
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno
+        });
+      });
+
+      window.addEventListener('unhandledrejection', (event) => {
+        const reason = event.reason;
+        pushDebug('unhandled rejection', reason && reason.message ? reason.message : reason);
+      });
+
+      window.__fontSourcePopupDebug = pushDebug;
+
+      logDims('head-inline');
+      window.addEventListener('DOMContentLoaded', () => logDims('domcontentloaded'));
+      window.addEventListener('load', () => logDims('load'));
+    })();
+  </script>
 </head>
 <body>
   <div class="container">
+    <pre class="debug-log" id="popupDebugLog" aria-live="polite"></pre>
     <div class="header">
       <div class="logo">
         <img
@@ -31,7 +109,7 @@
       <div class="blank-intro" id="blankIntro" hidden>
         <h2 class="blank-intro-title">No webpage in this tab</h2>
         <p class="blank-intro-text">
-          Blank pages and built-in browser pages cannot be analyzed. Enter an address to open a site, then use "Scan this page" in FontSource when the page has loaded.
+          Built-in or empty tabs cannot be scanned. Enter a URL below to open a site, then scan from here.
         </p>
       </div>
 
@@ -41,14 +119,14 @@
           <span class="active-page-url" id="activePageUrl"></span>
         </div>
         <p class="active-page-hint" id="activePageHint">
-          Scan runs in small batches so large pages stay responsive. Start when the page has finished loading.
+          Tap <strong>Scan this page</strong> when the site is loaded (large pages scan in steps).
         </p>
         <button type="button" class="page-scan-btn" id="pageScanBtn">Scan this page</button>
       </div>
 
       <!-- URL open / another-site -->
       <div class="url-section" id="urlSection">
-        <p class="url-section-hint" id="urlSectionHint"></p>
+        <p class="url-section-hint" id="urlSectionHint">Open a site here, or scan the current page when available.</p>
         <div class="url-input-container">
           <input type="text" id="urlInput" placeholder="Enter full URL" autocomplete="off" spellcheck="false">
           <button type="button" class="scan-btn" id="scanBtn" title="Open this address">

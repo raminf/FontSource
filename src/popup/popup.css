@@ -20,20 +20,55 @@
   padding: 0;
 }
 
+/* Extension popups can size from the document's earliest measured box.
+ * Reserve a stable shell up front so Chrome / Safari / Firefox don't collapse
+ * the panel to a tiny sliver before JS finishes initializing the UI. */
+html {
+  width: 400px;
+  min-width: 400px;
+  height: 520px;
+  min-height: 520px;
+  max-height: 520px;
+}
+
 body {
+  display: flex;
   font-family: var(--font-family);
   background-color: var(--background-color);
   color: var(--text-primary);
   font-size: 14px;
   line-height: 1.5;
   width: 400px;
-  min-height: 500px;
+  min-width: 400px;
+  height: 520px;
+  min-height: 520px;
+  max-height: 520px;
+  overflow: hidden;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  width: 100%;
+  min-width: 400px;
+  height: 520px;
+  min-height: 520px;
+  flex: 1 1 auto;
+  max-height: 520px;
+}
+
+.debug-log {
+  display: block;
+  margin: 0;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(234, 88, 12, 0.2);
+  background: #fff7ed;
+  color: #9a3412;
+  font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 96px;
+  overflow: auto;
 }
 
 /* Header */
@@ -86,8 +121,18 @@ body {
 /* Content */
 .content {
   flex: 1;
+  min-height: 0;
   padding: 16px;
   overflow-y: auto;
+}
+
+/* Never show blank + “current page” blocks together (Firefox focus quirks can confuse JS hidden state). */
+.content[data-mode='blank'] .active-page-bar {
+  display: none !important;
+}
+
+.content[data-mode='page'] .blank-intro {
+  display: none !important;
 }
 
 /* Blank tab vs page mode */

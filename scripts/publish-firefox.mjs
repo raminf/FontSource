@@ -1,8 +1,8 @@
 /**
- * Submit the unpacked extension in dist/ to AMO (listed) via web-ext.
+ * Submit the unpacked extension in artifacts/firefox/ to AMO (listed) via web-ext.
  * Exits 0 without submitting when required env vars are missing.
  *
- * Expects dist/ to already use manifest.firefox.json (run make package-firefox first).
+ * Expects artifacts/firefox/ to already use the Firefox MV2 manifest (run make package-firefox first).
  *
  * Env: WEB_EXT_API_KEY, WEB_EXT_API_SECRET (Mozilla JWT issuer + secret from AMO)
  */
@@ -20,9 +20,11 @@ if (!defined('WEB_EXT_API_KEY') || !defined('WEB_EXT_API_SECRET')) {
   process.exit(0);
 }
 
-const dist = 'dist';
+const dist = 'artifacts/firefox';
 if (!fs.existsSync(dist) || !fs.existsSync(`${dist}/manifest.json`)) {
-  console.error('[publish-firefox] dist/ or dist/manifest.json missing. Run make package-firefox first.');
+  console.error(
+    '[publish-firefox] artifacts/firefox/ or manifest.json missing. Run make package-firefox first.'
+  );
   process.exit(1);
 }
 

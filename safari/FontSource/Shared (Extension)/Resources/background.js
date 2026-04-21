@@ -3,7 +3,28 @@
  * Manages extension state, handles messages, and coordinates between components
  */
 
+/**
+ * Firefox MV2 uses a non-worker background page (no importScripts). Chrome and
+ * Safari MV3 builds use a service worker where importScripts is available.
+ */
+function isFirefoxMv2BackgroundRuntime() {
+  return typeof importScripts !== 'function';
+}
+
 (function loadFontFaceRemoteParser() {
+  if (isFirefoxMv2BackgroundRuntime()) {
+    /* Firefox only: manifest.firefox.json lists lib/font-face-remote.js before background.js. */
+    if (typeof globalThis.parseFontFacesFromCss !== 'function') {
+      console.error(
+        'FontSource: parseFontFacesFromCss missing; manifest.firefox.json must load lib/font-face-remote.js before background.js.'
+      );
+    }
+    return;
+  }
+  /* Chrome / Safari MV3 service worker */
+  if (typeof globalThis.parseFontFacesFromCss === 'function') {
+    return;
+  }
   const url =
     typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL
       ? chrome.runtime.getURL('lib/font-face-remote.js')
@@ -11,8 +32,35 @@
   importScripts(url);
 })();
 
-/** Use lastFocusedWindow so the tab behind the extension popup is found (currentWindow is wrong from MV3 SW). */
-const ACTIVE_TAB_QUERY = { active: true, lastFocusedWindow: true };
+/**
+ * Chrome/Safari MV3 service worker: lastFocusedWindow finds the tab behind the toolbar popup.
+ * Firefox MV2 persistent background: currentWindow matches the user’s browser window reliably.
+ */
+function activeTabQueryOpts() {
+  return isFirefoxMv2BackgroundRuntime()
+    ? { active: true, currentWindow: true }
+    : { active: true, lastFocusedWindow: true };
+}
+
+function tabsQuery(query, callback) {
+  if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.tabs.query) {
+    callback([]);
+    return;
+  }
+  try {
+    chrome.tabs.query(query, (tabs) => {
+      if (chrome.runtime.lastError) {
+        console.warn('FontSource: tabs.query', chrome.runtime.lastError.message);
+        callback([]);
+        return;
+      }
+      callback(tabs || []);
+    });
+  } catch (e) {
+    console.warn('FontSource: tabs.query threw', e);
+    callback([]);
+  }
+}
 
 const DEFAULT_FIND_SEARCH_TEMPLATE = 'https://www.google.com/search?q={query}';
 
@@ -106,6 +154,30 @@ function updateScanOptions(options) {
 }
 
 /**
+ * Firefox-only: when lastFocusedWindow + active misses (toolbar popup focus),
+ * pick a scannable tab from active tabs across windows. Not used on Chrome/Safari MV3.
+ * @param {(tab: object | null) => void} callback
+ */
+function pickActiveTabAcrossWindowsFirefox(callback) {
+  if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.tabs.query) {
+    callback(null);
+    return;
+  }
+  try {
+    tabsQuery({ active: true }, (tabs) => {
+      if (!tabs || !tabs.length) {
+        callback(null);
+        return;
+      }
+      const scannable = tabs.find((t) => t.url && isScannablePage(t.url));
+      callback(scannable || tabs[0] || null);
+    });
+  } catch {
+    callback(null);
+  }
+}
+
+/**
  * Resolve the tab the user is browsing (not the extension popup).
  * Never trust tabs.query from the popup alone — use this from the service worker.
  * @param {number|undefined} preferredTabId optional tab id from a prior background resolution
@@ -117,12 +189,37 @@ function getCurrentTabDescriptor(preferredTabId) {
       resolve({ url: url || null, tabId: tabId !== undefined && tabId !== null ? tabId : undefined });
     };
 
+    const useTabOrFallback = (t) => {
+      if (t && t.url) {
+        finish(t.url, t.id);
+        return;
+      }
+      if (isFirefoxMv2BackgroundRuntime()) {
+        pickActiveTabAcrossWindowsFirefox((ft) => {
+          if (ft && ft.url) {
+            finish(ft.url, ft.id);
+            return;
+          }
+          if (t && t.id != null) {
+            finish(t.url || null, t.id);
+            return;
+          }
+          finish(null, undefined);
+        });
+        return;
+      }
+      if (t && t.id != null) {
+        finish(t.url || null, t.id);
+        return;
+      }
+      finish(null, undefined);
+    };
+
     if (preferredTabId != null) {
       chrome.tabs.get(preferredTabId, (tab) => {
         if (chrome.runtime.lastError || !tab) {
-          chrome.tabs.query(ACTIVE_TAB_QUERY, (tabs) => {
-            const t = tabs && tabs[0];
-            finish(t ? t.url : null, t ? t.id : undefined);
+          tabsQuery(activeTabQueryOpts(), (tabs) => {
+            useTabOrFallback(tabs && tabs[0]);
           });
           return;
         }
@@ -131,13 +228,8 @@ function getCurrentTabDescriptor(preferredTabId) {
       return;
     }
 
-    chrome.tabs.query(ACTIVE_TAB_QUERY, (tabs) => {
-      const t = tabs && tabs[0];
-      if (!t) {
-        finish(null, undefined);
-        return;
-      }
-      finish(t.url, t.id);
+    tabsQuery(activeTabQueryOpts(), (tabs) => {
+      useTabOrFallback(tabs && tabs[0]);
     });
   });
 }
@@ -154,7 +246,6 @@ function isScannablePage(url) {
   if (!url || typeof url !== 'string') return false;
   const u = url.toLowerCase();
   if (u.startsWith('http://') || u.startsWith('https://')) return true;
-  if (u.startsWith('file://')) return true;
   return false;
 }
 
@@ -183,7 +274,7 @@ function openUrlForScanning(rawUrl) {
       return;
     }
 
-    chrome.tabs.query(ACTIVE_TAB_QUERY, (tabs) => {
+    tabsQuery(activeTabQueryOpts(), (tabs) => {
       const tab = tabs[0];
       const current = tab && tab.url ? tab.url : '';
       const useSameTab = tab && tab.id != null && !isScannablePage(current);
@@ -288,25 +379,85 @@ async function fetchRemoteStylesheetFontFaces(hrefs) {
 }
 
 /**
- * Inject content scripts manually when tabs.sendMessage finds no listener (SPA / bfcache / timing).
- * Never load lib/font-detection.js again if the manifest already did — duplicate top-level const
- * throws and leaves the page without a working listener. Prefer re-running content.js only
- * (re-attaches onMessage); fall back to font-detection + content only when needed.
+ * Firefox MV2 / older hosts: no chrome.scripting — use tabs.executeScript.
  * @param {number} tabId
  * @returns {Promise<boolean>}
  */
-async function ensureContentScriptsInjected(tabId) {
-  if (typeof chrome === 'undefined' || !chrome.scripting || !chrome.scripting.executeScript) {
+async function ensureContentScriptsInjectedMV2(tabId) {
+  if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.tabs.executeScript) {
     return false;
   }
+
+  const execFile = (file) =>
+    new Promise((resolve, reject) => {
+      chrome.tabs.executeScript(tabId, { file }, () => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else {
+          resolve();
+        }
+      });
+    });
+
+  const hasEngine = await new Promise((resolve) => {
+    chrome.tabs.executeScript(
+      tabId,
+      { code: 'typeof globalThis.detectFontsWithProgress==="function"' },
+      (r) => {
+        if (chrome.runtime.lastError) {
+          resolve(false);
+          return;
+        }
+        resolve(!!(r && r[0]));
+      }
+    );
+  });
+
+  try {
+    if (!hasEngine) {
+      try {
+        await execFile('lib/font-detection.js');
+      } catch (e) {
+        const msg = e && e.message ? String(e.message) : '';
+        if (!/already been declared|Identifier .* has already been declared|redeclaration/i.test(msg)) {
+          throw e;
+        }
+      }
+    }
+    await execFile('content.js');
+    return true;
+  } catch (e) {
+    console.warn('FontSource: MV2 executeScript inject failed', e);
+    return false;
+  }
+}
+
+/**
+ * Chrome MV3: programmatic inject via chrome.scripting.
+ * @param {number} tabId
+ * @returns {Promise<boolean>}
+ */
+async function ensureContentScriptsInjectedMV3(tabId) {
   const target = { tabId, allFrames: false };
   const contentOnly = ['content.js'];
   const both = ['lib/font-detection.js', 'content.js'];
+
+  let files = both;
+  try {
+    const probe = await chrome.scripting.executeScript({
+      target,
+      func: () => typeof globalThis.detectFontsWithProgress === 'function'
+    });
+    if (probe && probe[0] && probe[0].result === true) {
+      files = contentOnly;
+    }
+  } catch {
+    files = both;
+  }
+
   const attempts = [
-    { files: contentOnly },
-    { files: contentOnly, injectImmediately: true },
-    { files: both },
-    { files: both, injectImmediately: true }
+    { files },
+    { files, injectImmediately: true }
   ];
   let lastErr;
   for (const a of attempts) {
@@ -319,10 +470,40 @@ async function ensureContentScriptsInjected(tabId) {
       return true;
     } catch (e) {
       lastErr = e;
+      const msg = e && e.message ? String(e.message) : '';
+      if (a.files === both && /already been declared|Identifier .* has already been declared/i.test(msg)) {
+        try {
+          await chrome.scripting.executeScript({
+            target,
+            files: contentOnly,
+            ...(a.injectImmediately ? { injectImmediately: true } : {})
+          });
+          return true;
+        } catch (e2) {
+          lastErr = e2;
+        }
+      }
     }
   }
   console.warn('FontSource: programmatic content-script inject failed', lastErr);
   return false;
+}
+
+/**
+ * Inject content scripts manually when tabs.sendMessage finds no listener (SPA / bfcache / timing).
+ * Must load lib/font-detection.js whenever the scan engine is missing — injecting content.js alone
+ * leaves detectFontsWithProgress undefined (ReferenceError on scan).
+ * When the manifest already ran font-detection.js, skip re-injecting it: duplicate top-level const
+ * in that file throws. Probe the isolated world first.
+ * @param {number} tabId
+ * @returns {Promise<boolean>}
+ */
+async function ensureContentScriptsInjected(tabId) {
+  if (typeof chrome !== 'undefined' && chrome.scripting && chrome.scripting.executeScript) {
+    return ensureContentScriptsInjectedMV3(tabId);
+  }
+  /* Firefox MV2 has no chrome.scripting; MV2 executeScript path is unused on Chrome/Safari MV3. */
+  return ensureContentScriptsInjectedMV2(tabId);
 }
 
 async function trySendMessageToTab(tabId, action, data) {
@@ -374,13 +555,11 @@ async function sendMessageWithBackoff(tabId, action, data, maxAttempts) {
 async function sendMessageToContent(action, data = {}, tabIdOpt) {
   let tabId = tabIdOpt;
   if (tabId == null) {
-    const tabs = await new Promise((resolve) => {
-      chrome.tabs.query(ACTIVE_TAB_QUERY, resolve);
-    });
-    if (!tabs[0] || tabs[0].id == null) {
+    const d = await getCurrentTabDescriptor();
+    if (d.tabId == null) {
       return { connectError: 'No active tab' };
     }
-    tabId = tabs[0].id;
+    tabId = d.tabId;
   }
 
   let { ok, body, err } = await sendMessageWithBackoff(tabId, action, data, 9);

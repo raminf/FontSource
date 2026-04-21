@@ -8,7 +8,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 
 /**
- * @param {string} extensionAbs absolute path to unpacked extension (dist/)
+ * @param {string} extensionAbs absolute path to unpacked extension (artifacts/chrome/)
  * @returns {Promise<{ context: import('playwright').BrowserContext, serviceWorker: import('playwright').Worker, userDataDir: string, dispose: () => Promise<void> }>}
  */
 export async function createExtensionPlaywrightContext(extensionAbs) {
@@ -86,7 +86,7 @@ export async function executeFontScanInServiceWorker(serviceWorker, targetUrl) {
     const run = globalThis.__fontSourceRunScanForTesting;
     if (typeof run !== 'function') {
       throw new Error(
-        'Extension test hook missing (__fontSourceRunScanForTesting). Rebuild dist from current src/background.js.'
+        'Extension test hook missing (__fontSourceRunScanForTesting). Rebuild artifacts/chrome from current src/background.js.'
       );
     }
 

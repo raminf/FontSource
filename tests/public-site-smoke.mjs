@@ -7,7 +7,7 @@
  * Usage:
  *   npm run test:panel:public
  *
- * Requires ./dist/manifest.json (build the extension first).
+ * Requires ./artifacts/chrome/manifest.json (build the extension first).
  *
  * Env:
  *   FONT_SOURCE_PANEL_HEADLESS=1
@@ -38,7 +38,7 @@ async function main() {
     return;
   }
 
-  const extDir = path.resolve(process.env.FONT_SOURCE_EXT_DIR || path.join(ROOT, 'dist'));
+  const extDir = path.resolve(process.env.FONT_SOURCE_EXT_DIR || path.join(ROOT, 'artifacts', 'chrome'));
   if (!fs.existsSync(path.join(extDir, 'manifest.json'))) {
     console.error(`Unpacked extension not found at ${extDir} (need manifest.json). Build first.`);
     process.exit(1);

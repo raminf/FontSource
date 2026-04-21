@@ -1,5 +1,7 @@
 # FontSource - Browser Extension
 
+![FontSource popup and scan results](media/FontSource-ss-3.png)
+
 A browser extension that analyzes websites to identify fonts, their sources, and license information.
 
 ## Features
@@ -23,7 +25,10 @@ A browser extension that analyzes websites to identify fonts, their sources, and
 make install
 
 # Build the extension
-make build
+make build         # All browsers
+make build-chrome  # Chrome
+make build-firefox # Firefox
+make build-safari  # Safari
 
 # Load in browser
 make load-chrome    # Chrome
@@ -45,8 +50,11 @@ make package-safari
 | Command | Description |
 |---------|-------------|
 | `make install` | Install npm dependencies |
-| `make build` | Build the extension (cleans first) |
-| `make clean` | Remove build artifacts and node_modules |
+| `make build` | Build all browser targets under `artifacts/` |
+| `make build-chrome` | Build for Chrome (`manifest.json` in `artifacts/chrome/`) |
+| `make build-firefox` | Build for Firefox (MV2 manifest in `artifacts/firefox/`; required for temporary add-on) |
+| `make build-safari` | Build for Safari (`manifest.json` in `artifacts/safari/`) |
+| `make clean` | Remove `artifacts/` (unpacked extension and store zips); keeps `node_modules` |
 
 ### Development
 | Command | Description |
@@ -97,6 +105,11 @@ make package-safari
 
 ```
 FontSource/
+├── artifacts/                 # make build / package-* output (gitignored)
+│   ├── chrome/                # unpacked Chrome extension
+│   ├── firefox/               # unpacked Firefox extension
+│   ├── safari/                # unpacked Safari extension
+│   └── fontsource-*.zip       # Chrome / Firefox packages after make package-*
 ├── src/
 │   ├── background.js          # Background service worker
 │   ├── content.js             # Content script for font detection
