@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "test:panel:baseline:record": "node tests/panel-baseline-runner.mjs record",
     "test:panel:baseline:check": "node tests/panel-baseline-runner.mjs check",
+    "test:panel:public": "node tests/public-site-smoke.mjs",
     "package:chrome": "make package-chrome",
     "package:firefox": "make package-firefox",
     "package:safari": "make package-safari",

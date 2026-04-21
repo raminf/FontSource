@@ -12,9 +12,8 @@
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import os from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
+import { runExtensionFontScan } from './lib/extension-scan-harness.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -64,66 +63,14 @@ function startFixtureServer(html) {
 }
 
 async function runScanWithExtension(extensionAbs, pageUrl) {
-  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fontsource-panel-'));
-  const headless = process.env.FONT_SOURCE_PANEL_HEADLESS === '1';
   const formatPanelBaselineFromFonts = await loadFormat();
-
-  let context;
-  try {
-    context = await chromium.launchPersistentContext(userDataDir, {
-      channel: 'chromium',
-      headless,
-      args: [
-        `--disable-extensions-except=${extensionAbs}`,
-        `--load-extension=${extensionAbs}`,
-        '--no-sandbox',
-        '--disable-setuid-sandbox'
-      ]
-    });
-
-    const serviceWorker =
-      context.serviceWorkers()[0] ||
-      (await context.waitForEvent('serviceworker', { timeout: 45000 }));
-
-    const page = await context.newPage();
-    await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await new Promise((r) => setTimeout(r, 800));
-
-    /* eslint-disable no-undef -- body runs in extension service worker (chrome.*, globalThis) */
-    const scanResult = await serviceWorker.evaluate(async (targetUrl) => {
-      const norm = (u) => (u || '').replace(/\/$/, '');
-      const targetN = norm(targetUrl);
-      const tabs = await chrome.tabs.query({});
-      const hit = tabs.find((t) => {
-        const u = t.url || '';
-        return norm(u) === targetN || u.startsWith(targetUrl);
-      });
-      if (!hit?.id) {
-        const urls = tabs.map((t) => t.url).join('\n');
-        throw new Error(`No tab for fixture URL.\nTarget: ${targetUrl}\nOpen tabs:\n${urls}`);
-      }
-      const run = globalThis.__fontSourceRunScanForTesting;
-      if (typeof run !== 'function') {
-        throw new Error('Extension test hook missing (__fontSourceRunScanForTesting). Rebuild dist from current src/background.js.');
-      }
-      return run(hit.id, {});
-    }, pageUrl);
-    /* eslint-enable no-undef */
-
-    if (!scanResult || scanResult.error) {
-      const msg = scanResult?.error || 'Unknown scan error';
-      throw new Error(`Scan failed: ${msg}`);
-    }
-    if (!Array.isArray(scanResult.fonts)) {
-      throw new Error('Scan returned no fonts array');
-    }
-
-    const snapshot = formatPanelBaselineFromFonts(scanResult.fonts);
-    return { snapshot, scanMeta: { url: scanResult.url, count: scanResult.fonts.length } };
-  } finally {
-    await context?.close().catch(() => {});
-    fs.rmSync(userDataDir, { recursive: true, force: true });
-  }
+  const { fonts, url } = await runExtensionFontScan(extensionAbs, pageUrl, {
+    settleMs: 800,
+    waitUntil: 'domcontentloaded',
+    gotoTimeout: 60000
+  });
+  const snapshot = formatPanelBaselineFromFonts(fonts);
+  return { snapshot, scanMeta: { url, count: fonts.length } };
 }
 
 async function main() {
