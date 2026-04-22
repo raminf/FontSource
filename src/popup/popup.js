@@ -43,16 +43,11 @@ function extensionApi() {
   try {
     const el = document.getElementById('popupAppVersion');
     const api = extensionApi();
-    popupLog('setPopupVersionFromManifest', {
-      hasElement: !!el,
-      hasRuntime: !!api.runtime,
-      hasTabs: !!api.tabs
-    });
     if (el && api.runtime && typeof api.runtime.getManifest === 'function') {
       el.textContent = `v${api.runtime.getManifest().version}`;
     }
   } catch (e) {
-    console.error(POPUP_LOG_TAG, 'setPopupVersionFromManifest failed', e);
+    console.error('FontSource popup: setPopupVersionFromManifest failed', e);
   }
 })();
 
