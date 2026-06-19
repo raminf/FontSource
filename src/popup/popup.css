@@ -76,6 +76,12 @@ body {
   color: var(--primary-color);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .logo-mark {
   display: block;
   width: 32px;
@@ -102,6 +108,16 @@ body {
 .settings-btn:hover {
   background-color: var(--background-color);
   color: var(--primary-color);
+}
+
+.settings-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.settings-btn:disabled:hover {
+  background: none;
+  color: var(--text-secondary);
 }
 
 /* Content */

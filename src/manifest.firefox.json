@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "FontSource",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Detect fonts, their sources, and license information on any website",
   "browser_specific_settings": {
     "gecko": {
@@ -24,6 +24,7 @@
   },
   "permissions": [
     "storage",
+    "downloads",
     "http://*/*",
     "https://*/*"
   ],

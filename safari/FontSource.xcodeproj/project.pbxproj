@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4F5352410000000000000042 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5352410000000000000043 /* AppDelegate.swift */; };
 		4F5352410000000000000001 /* FontSourceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5352410000000000000011 /* FontSourceApp.swift */; };
 		4F5352410000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5352410000000000000012 /* ContentView.swift */; };
 		4F5352410000000000000003 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5352410000000000000015 /* SafariWebExtensionHandler.swift */; };
@@ -43,6 +44,7 @@
 		4F5352410000000000000010 /* FontSource.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FontSource.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F5352410000000000000011 /* FontSourceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSourceApp.swift; sourceTree = "<group>"; };
 		4F5352410000000000000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		4F5352410000000000000043 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4F5352410000000000000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F5352410000000000000014 /* FontSource Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "FontSource Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F5352410000000000000015 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
@@ -85,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				4F5352410000000000000041 /* Assets.xcassets */,
+				4F5352410000000000000043 /* AppDelegate.swift */,
 				4F5352410000000000000012 /* ContentView.swift */,
 				4F5352410000000000000011 /* FontSourceApp.swift */,
 				4F5352410000000000000013 /* Info.plist */,
@@ -242,6 +245,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4F5352410000000000000042 /* AppDelegate.swift in Sources */,
 				4F5352410000000000000002 /* ContentView.swift in Sources */,
 				4F5352410000000000000001 /* FontSourceApp.swift in Sources */,
 			);
@@ -364,7 +368,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = FontSource/FontSource.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = S9M98WPW23;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -378,7 +382,7 @@
 					"@executable_path/../PlugIns",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.raminfiroozye.FontSourceSafari;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -394,7 +398,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = FontSource/FontSource.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = S9M98WPW23;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -408,7 +412,7 @@
 					"@executable_path/../PlugIns",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.raminfiroozye.FontSourceSafari;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -423,7 +427,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = "FontSource Extension/FontSource Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = S9M98WPW23;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -437,7 +441,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.raminfiroozye.FontSourceSafari.Extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -452,7 +456,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = "FontSource Extension/FontSource Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = S9M98WPW23;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -466,7 +470,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.raminfiroozye.FontSourceSafari.Extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

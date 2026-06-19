@@ -12,6 +12,7 @@ const loadingSection = document.getElementById('loadingSection');
 const emptySection = document.getElementById('emptySection');
 const emptySectionMessage = document.getElementById('emptySectionMessage');
 const settingsBtn = document.getElementById('settingsBtn');
+const captureBtn = document.getElementById('captureBtn');
 const contentRoot = document.getElementById('contentRoot');
 const blankIntro = document.getElementById('blankIntro');
 const activePageBar = document.getElementById('activePageBar');
@@ -31,12 +32,22 @@ const SCAN_REQUEST_TIMEOUT_MS = 30000;
  */
 function extensionApi() {
   if (typeof browser !== 'undefined' && browser.runtime && typeof browser.runtime.sendMessage === 'function') {
-    return { runtime: browser.runtime, tabs: browser.tabs };
+    return {
+      runtime: browser.runtime,
+      tabs: browser.tabs,
+      downloads: browser.downloads,
+      storage: browser.storage
+    };
   }
   if (typeof chrome !== 'undefined' && chrome.runtime) {
-    return { runtime: chrome.runtime, tabs: chrome.tabs };
+    return {
+      runtime: chrome.runtime,
+      tabs: chrome.tabs,
+      downloads: chrome.downloads,
+      storage: chrome.storage
+    };
   }
-  return { runtime: null, tabs: null };
+  return { runtime: null, tabs: null, downloads: null, storage: null };
 }
 
 (function setPopupVersionFromManifest() {
@@ -65,6 +76,15 @@ let findSearchUrlTemplate = 'https://www.google.com/search?q={query}';
 let showPreview = true;
 /** @type {'page' | 'blank'} */
 let uiMode = 'blank';
+let captureInFlight = false;
+
+function updateCaptureButtonState() {
+  if (!captureBtn) {
+    return;
+  }
+  const hasResults = Array.isArray(currentFonts) && currentFonts.length > 0;
+  captureBtn.disabled = !hasResults || captureInFlight;
+}
 
 function connectFontScanProgressPort() {
   disconnectFontScanProgressPort();
@@ -282,6 +302,7 @@ function showPageReadyUi(tabUrl) {
   if (pageScanBtn) {
     pageScanBtn.disabled = false;
   }
+  updateCaptureButtonState();
 }
 
 async function init() {
@@ -361,6 +382,11 @@ function setupEventListeners() {
     }
   });
   settingsBtn.addEventListener('click', openSettings);
+  if (captureBtn) {
+    captureBtn.addEventListener('click', () => {
+      void saveReportScreenshot();
+    });
+  }
 
   resultsContainer.addEventListener('click', (e) => {
     const btn = e.target.closest('.find-font-btn');
@@ -414,6 +440,8 @@ async function openSubmittedUrl() {
 }
 
 async function scanCurrentPage(explicitTabId) {
+  currentFonts = [];
+  updateCaptureButtonState();
   if (pageScanBtn) {
     pageScanBtn.disabled = true;
   }
@@ -695,6 +723,7 @@ async function displayFonts(fonts) {
   resultsSection.style.display = 'block';
   emptySection.hidden = true;
   loadingSection.style.display = 'none';
+  updateCaptureButtonState();
 }
 
 function humanizeFamilyName(name) {
@@ -985,14 +1014,17 @@ function showLoading() {
   emptySection.hidden = true;
   loadingSection.style.display = 'flex';
   resetScanProgressUI();
+  updateCaptureButtonState();
 }
 
 function showEmptyState(message) {
   removePreviewFontStyles();
+  currentFonts = [];
   resultsSection.style.display = 'none';
   loadingSection.style.display = 'none';
   emptySection.hidden = false;
   emptySectionMessage.textContent = message;
+  updateCaptureButtonState();
 }
 
 function openSettings() {
@@ -1083,6 +1115,305 @@ function renderFontSourceUrl(rawUrl) {
 function truncateUrl(url, maxLength) {
   if (!url || url.length <= maxLength) return url || '';
   return url.substring(0, maxLength - 3) + '...';
+}
+
+function buildSafeReportFilename() {
+  let host = 'font-report';
+  try {
+    if (currentUrl) {
+      host = new URL(currentUrl).hostname || host;
+    }
+  } catch (_e) {
+    /* ignore */
+  }
+  host = host.replace(/[^a-z0-9.-]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'font-report';
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  return `fontsource-report-${host}-${stamp}.png`;
+}
+
+function buildPrintableReportFilename() {
+  return buildSafeReportFilename().replace(/\.png$/i, '.pdf');
+}
+
+function setStorageLocal(values) {
+  const storage = extensionApi().storage;
+  if (!storage || !storage.local || typeof storage.local.set !== 'function') {
+    return Promise.reject(new Error('Storage API unavailable'));
+  }
+  if (typeof browser !== 'undefined' && storage === browser.storage) {
+    return storage.local.set(values);
+  }
+  return new Promise((resolve, reject) => {
+    storage.local.set(values, () => {
+      const err =
+        typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError
+          ? chrome.runtime.lastError
+          : null;
+      if (err) {
+        reject(new Error(err.message || 'Could not save export data'));
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+function createTab(url) {
+  const tabsApi = extensionApi().tabs;
+  if (!tabsApi || typeof tabsApi.create !== 'function') {
+    return Promise.reject(new Error('Tabs API unavailable'));
+  }
+  if (typeof browser !== 'undefined' && tabsApi === browser.tabs) {
+    return tabsApi.create({ url, active: true });
+  }
+  return new Promise((resolve, reject) => {
+    tabsApi.create({ url, active: true }, (tab) => {
+      const err =
+        typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError
+          ? chrome.runtime.lastError
+          : null;
+      if (err) {
+        reject(new Error(err.message || 'Could not open export view'));
+        return;
+      }
+      resolve(tab);
+    });
+  });
+}
+
+function buildReportExportPayload() {
+  return {
+    fonts: Array.isArray(currentFonts) ? currentFonts : [],
+    currentUrl,
+    generatedAt: new Date().toISOString(),
+    showPreview,
+    suggestedFilename: buildPrintableReportFilename()
+  };
+}
+
+async function openPrintableReportExport() {
+  const api = extensionApi().runtime;
+  if (!api || typeof api.getURL !== 'function') {
+    throw new Error('Extension runtime unavailable');
+  }
+  await setStorageLocal({
+    reportExportPayload: buildReportExportPayload()
+  });
+  const exportUrl = api.getURL('popup/report-export.html?print=1');
+  await createTab(exportUrl);
+}
+
+function gatherPopupCssText() {
+  const chunks = [];
+  for (const sheet of Array.from(document.styleSheets || [])) {
+    try {
+      const rules = sheet.cssRules;
+      if (!rules) {
+        continue;
+      }
+      for (const rule of Array.from(rules)) {
+        chunks.push(rule.cssText);
+      }
+    } catch (_e) {
+      /* ignore unreadable stylesheets */
+    }
+  }
+  return chunks.join('\n');
+}
+
+async function inlineImageSources(root) {
+  const images = Array.from(root.querySelectorAll('img'));
+  await Promise.all(
+    images.map(async (img) => {
+      const src = img.getAttribute('src');
+      if (!src) {
+        return;
+      }
+      try {
+        const abs = new URL(src, window.location.href).href;
+        const response = await fetch(abs);
+        const blob = await response.blob();
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('Failed to inline image'));
+          reader.readAsDataURL(blob);
+        });
+        img.setAttribute('src', String(dataUrl));
+      } catch (_e) {
+        /* leave original src in place */
+      }
+    })
+  );
+}
+
+async function renderNodeToPngBlob(node) {
+  const width = Math.max(400, Math.ceil(node.scrollWidth || node.clientWidth || 400));
+  const height = Math.max(520, Math.ceil(node.scrollHeight || node.clientHeight || 520));
+  const clone = node.cloneNode(true);
+  if (!(clone instanceof HTMLElement)) {
+    throw new Error('Could not clone report');
+  }
+
+  clone.style.width = `${width}px`;
+  clone.style.minWidth = `${width}px`;
+  clone.style.height = `${height}px`;
+  clone.style.minHeight = `${height}px`;
+  clone.style.maxHeight = 'none';
+  clone.style.overflow = 'visible';
+
+  const clonedContent = clone.querySelector('.content');
+  if (clonedContent instanceof HTMLElement) {
+    clonedContent.style.overflow = 'visible';
+    clonedContent.style.maxHeight = 'none';
+    clonedContent.style.height = 'auto';
+  }
+
+  await inlineImageSources(clone);
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <foreignObject width="100%" height="100%">
+        <div xmlns="http://www.w3.org/1999/xhtml">
+          <style>${gatherPopupCssText()}</style>
+          ${new XMLSerializer().serializeToString(clone)}
+        </div>
+      </foreignObject>
+    </svg>
+  `;
+
+  const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Failed to render screenshot'));
+      img.src = url;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = width * 2;
+    canvas.height = height * 2;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Canvas is unavailable');
+    }
+    ctx.scale(2, 2);
+    ctx.drawImage(image, 0, 0, width, height);
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob((pngBlob) => {
+        if (pngBlob) {
+          resolve(pngBlob);
+          return;
+        }
+        reject(new Error('Failed to encode screenshot'));
+      }, 'image/png');
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function fallbackDownloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
+function downloadViaExtensionApi(blob, filename) {
+  const api = extensionApi().downloads;
+  if (!api || typeof api.download !== 'function') {
+    fallbackDownloadBlob(blob, filename);
+    return Promise.resolve();
+  }
+
+  const url = URL.createObjectURL(blob);
+
+  if (typeof browser !== 'undefined' && api === browser.downloads) {
+    return api
+      .download({
+        url,
+        filename,
+        saveAs: true,
+        conflictAction: 'uniquify'
+      })
+      .then(() => {
+        window.setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 15000);
+      })
+      .catch((error) => {
+        URL.revokeObjectURL(url);
+        throw error;
+      });
+  }
+
+  return new Promise((resolve, reject) => {
+    api.download(
+      {
+        url,
+        filename,
+        saveAs: true,
+        conflictAction: 'uniquify'
+      },
+      () => {
+        const err =
+          typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError
+            ? chrome.runtime.lastError
+            : null;
+        if (err) {
+          URL.revokeObjectURL(url);
+          reject(new Error(err.message || 'Download failed'));
+          return;
+        }
+        window.setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 15000);
+        resolve();
+      }
+    );
+  });
+}
+
+async function saveReportScreenshot() {
+  if (captureInFlight || !Array.isArray(currentFonts) || currentFonts.length === 0) {
+    updateCaptureButtonState();
+    return;
+  }
+
+  captureInFlight = true;
+  updateCaptureButtonState();
+
+  try {
+    const blob = await renderNodeToPngBlob(document.querySelector('.container'));
+    await downloadViaExtensionApi(blob, buildSafeReportFilename());
+    setUrlFeedback('Saved report screenshot as PNG.', false);
+  } catch (e) {
+    try {
+      await openPrintableReportExport();
+      setUrlFeedback('Opened a printable report. Save it as PDF from the print dialog.', false);
+      return;
+    } catch (fallbackError) {
+      console.error('FontSource printable export fallback failed:', fallbackError);
+    }
+    console.error('FontSource screenshot export failed:', e);
+    setUrlFeedback(
+      e && e.message ? `Could not save report screenshot: ${e.message}` : 'Could not save report screenshot.',
+      true
+    );
+  } finally {
+    captureInFlight = false;
+    updateCaptureButtonState();
+  }
 }
 
 if (document.readyState === 'loading') {

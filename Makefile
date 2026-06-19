@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-VERSION := 1.0.3
+VERSION := 1.0.4
 # All make build / package outputs live under artifacts/ (gitignored).
 ARTIFACTS_DIR := artifacts
 CHROME_BUILD_DIR := $(ARTIFACTS_DIR)/chrome

@@ -1,6 +1,6 @@
 {
   "name": "fontsource",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Browser extension to detect fonts, their sources, and licenses",
   "main": "src/background.js",
   "scripts": {

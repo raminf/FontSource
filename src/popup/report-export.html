@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FontSource Report Export</title>
+  <link rel="stylesheet" href="report-export.css">
+</head>
+<body>
+  <main class="report-shell">
+    <header class="report-header">
+      <div>
+        <p class="report-kicker">FontSource Report</p>
+        <h1>Font scan export</h1>
+        <p class="report-url" id="reportUrl"></p>
+      </div>
+      <div class="report-meta">
+        <span class="report-count" id="reportCount">0 fonts</span>
+        <span class="report-date" id="reportDate"></span>
+      </div>
+    </header>
+
+    <section class="report-empty" id="reportEmpty" hidden>
+      <h2>No report data found</h2>
+      <p>Run a font scan first, then try the export action again.</p>
+    </section>
+
+    <section class="report-grid" id="reportGrid"></section>
+  </main>
+
+  <script src="report-export.js"></script>
+</body>
+</html>
